@@ -1,0 +1,11 @@
+:root {
+  --color-brand-primary: #0033D3;
+  --color-alert-error-dark: var(--red-80);
+  --color-alert-error-light: var(--red-20);
+  --color-alert-success-dark: var(--green-80);
+  --color-alert-success-light: var(--green-20);
+  --color-alert-warning-dark: var(--gold-80);
+  --color-alert-warning-light: var(--gold-20);
+  --color-alert-info-dark: var(--blue-80);
+  --color-alert-info-light: var(--blue-20);
+}

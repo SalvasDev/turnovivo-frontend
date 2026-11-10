@@ -1,0 +1,183 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-8);
+  inline-size: 100%;
+  min-inline-size: 0;
+  color: var(--text-primary);
+  font-family: var(--font-family-inter), sans-serif;
+  font-size: var(--font-size-16);
+  line-height: var(--line-height-20);
+}
+
+.header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-4) var(--space-8);
+}
+
+.labelRow,
+.label {
+  display: inline-flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  min-inline-size: 0;
+}
+
+.label {
+  font-weight: var(--font-weight-semibold);
+  overflow-wrap: anywhere;
+}
+
+.required,
+.description,
+.helper,
+.error {
+  font-size: var(--font-size-14);
+  font-weight: var(--font-weight-regular);
+  line-height: var(--line-height-20);
+  overflow-wrap: anywhere;
+}
+
+.required,
+.description,
+.helper {
+  color: var(--text-secondary);
+}
+
+.help {
+  display: inline-flex;
+  align-self: center;
+  inline-size: var(--size-16);
+  block-size: var(--size-16);
+  color: var(--icon-secondary);
+}
+
+.help > svg {
+  inline-size: 100%;
+  block-size: 100%;
+}
+
+.link {
+  color: var(--text-link-default);
+  font-size: var(--font-size-16);
+  text-decoration: underline;
+  overflow-wrap: anywhere;
+}
+
+.link:hover {
+  color: var(--text-link-hover);
+}
+
+.link:focus-visible {
+  outline: var(--size-2) solid var(--border-focus);
+  outline-offset: var(--space-2);
+}
+
+.control {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  box-sizing: border-box;
+  block-size: var(--size-40);
+  min-inline-size: 0;
+  padding-inline: var(--space-12);
+  border: thin solid var(--border-secondary);
+  border-radius: var(--radius-12);
+  background: var(--surface-primary);
+}
+
+.input {
+  flex: 1;
+  box-sizing: border-box;
+  inline-size: 100%;
+  min-inline-size: 0;
+  block-size: 100%;
+  padding: 0;
+  border: 0;
+  outline: none;
+  border-radius: inherit;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  letter-spacing: 0;
+}
+
+.input::placeholder {
+  color: var(--text-tertiary);
+  opacity: 1;
+}
+
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  inline-size: var(--size-24);
+  block-size: var(--size-24);
+  color: var(--icon-secondary);
+}
+
+.icon > svg {
+  inline-size: 100%;
+  block-size: 100%;
+}
+
+.field[data-state='resting'] .control,
+.field:has(.input:not(:placeholder-shown)) .control {
+  border-color: var(--border-primary);
+}
+
+.field[data-state='active'] .control,
+.control:has(.input[data-focused]) {
+  border-color: var(--border-brand);
+  outline: var(--size-2) solid var(--border-focus);
+  outline-offset: var(--space-2);
+}
+
+.field[data-state='success'] .control {
+  border-color: var(--border-success);
+}
+
+.field[data-state='success'] .helper {
+  color: var(--text-success);
+}
+
+.field[data-invalid] .control {
+  border-color: var(--border-error);
+}
+
+.field[data-invalid] .helper,
+.error {
+  color: var(--text-error);
+}
+
+.field[data-disabled] .control {
+  border-color: var(--border-disabled);
+  background: var(--surface-disabled);
+  outline: none;
+}
+
+.field[data-disabled] .input,
+.field[data-disabled] .label,
+.field[data-disabled] .required,
+.field[data-disabled] .helper,
+.field[data-disabled] .description {
+  color: var(--text-disabled);
+}
+
+.field[data-disabled] .icon {
+  color: var(--icon-disabled);
+}
+
+.field[data-disabled] .input::placeholder {
+  color: var(--text-disabled);
+}
+
+.field[data-disabled] .control,
+.field[data-disabled] .input {
+  cursor: not-allowed;
+}

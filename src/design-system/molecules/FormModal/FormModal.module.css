@@ -1,0 +1,62 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  place-items: center;
+  box-sizing: border-box;
+  padding: var(--space-16);
+  background: var(--overlay-default);
+}
+
+.modal {
+  inline-size: calc(var(--size-64) * 6 + var(--size-8));
+  max-inline-size: 100%;
+  min-inline-size: 0;
+  max-block-size: calc(100dvh - var(--space-32));
+  overflow: auto;
+  border-radius: var(--radius-12);
+  box-shadow: var(--effects-shadow-4);
+}
+
+.dialog {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-24);
+  box-sizing: border-box;
+  padding: var(--space-32);
+  border: thin solid var(--border-secondary);
+  border-radius: var(--radius-12);
+  outline: none;
+  background: var(--surface-primary);
+  color: var(--text-primary);
+  font-family: var(--font-family-inter), sans-serif;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-8);
+}
+
+.title {
+  min-inline-size: 0;
+  margin: 0;
+  font-size: var(--font-size-24);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-32);
+  overflow-wrap: anywhere;
+}
+
+.header .close {
+  --button-text-label: var(--icon-secondary);
+  --button-text-surface-hover: var(--surface-hover);
+  flex: none;
+  inline-size: var(--size-24);
+  block-size: var(--size-24);
+  min-block-size: var(--size-24);
+  padding: 0;
+  border-radius: var(--radius-4);
+}

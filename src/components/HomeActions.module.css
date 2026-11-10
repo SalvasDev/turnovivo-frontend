@@ -1,0 +1,13 @@
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-8);
+}
+
+@media (max-width: 40rem) {
+  .actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}

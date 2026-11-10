@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { AnchorHTMLAttributes, ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -35,6 +35,7 @@ describe('GlobalHeader', () => {
   beforeEach(() => {
     mockedUsePathname.mockReset();
     mockedUseAuth.mockReset();
+    delete document.documentElement.dataset.theme;
   });
 
   it('muestra menu admin y logout para usuario ADMIN', async () => {
@@ -54,7 +55,7 @@ describe('GlobalHeader', () => {
 
     expect(screen.getByText('Dashboard Admin')).toBeInTheDocument();
 
-    await user.click(screen.getByRole('button', { name: 'Cerrar sesion' }));
+    await user.click(screen.getByRole('menuitem', { name: 'Cerrar sesion' }));
     expect(logout).toHaveBeenCalledTimes(1);
   });
 
@@ -68,6 +69,68 @@ describe('GlobalHeader', () => {
 
     const { container } = render(<GlobalHeader />);
     expect(container).toBeEmptyDOMElement();
+  });
+
+  it('navega el menu con teclado y devuelve el foco al Avatar al cerrar', async () => {
+    const user = userEvent.setup();
+    mockedUsePathname.mockReturnValue(DEFAULT_DEMO_PATH);
+    mockedUseAuth.mockReturnValue({
+      loading: false, logout: vi.fn(),
+      user: { email: 'admin.user@turnovivo.com', role: 'ADMIN' },
+    });
+    render(<GlobalHeader />);
+    const trigger = screen.getByRole('button', { name: /menu de usuario de admin user/i });
+    expect(trigger.querySelector('[data-variant="default"]')).toBeInTheDocument();
+    expect(trigger).toHaveAttribute('aria-expanded', 'false');
+    trigger.focus();
+    await user.keyboard('{ArrowDown}');
+    const adminItem = await screen.findByRole('menuitem', { name: 'Dashboard Admin' });
+    await waitFor(() => expect(adminItem).toHaveFocus());
+    expect(adminItem).toHaveAttribute('href', '/admin');
+    await user.keyboard('{ArrowDown}');
+    expect(screen.getByRole('menuitem', { name: 'Cerrar sesion' })).toHaveFocus();
+    await user.keyboard('{Escape}');
+    await waitFor(() => expect(screen.queryByRole('menu')).not.toBeInTheDocument());
+    await waitFor(() => expect(trigger).toHaveFocus());
+    expect(trigger).toHaveAttribute('aria-expanded', 'false');
+  });
+
+  it('muestra solo logout para un cliente y cierra al hacer clic fuera', async () => {
+    const user = userEvent.setup();
+    const logout = vi.fn();
+    mockedUsePathname.mockReturnValue('/');
+    mockedUseAuth.mockReturnValue({
+      loading: false, logout,
+      user: { email: 'cliente@turnovivo.com', role: 'CLIENT' },
+    });
+    render(<GlobalHeader />);
+    const trigger = screen.getByRole('button', { name: /menu de usuario de cliente/i });
+    await user.click(trigger);
+    expect(screen.getAllByRole('menuitem')).toHaveLength(1);
+    expect(screen.queryByRole('menuitem', { name: 'Dashboard Admin' })).not.toBeInTheDocument();
+    await user.click(document.body);
+    await waitFor(() => expect(screen.queryByRole('menu')).not.toBeInTheDocument());
+    expect(logout).not.toHaveBeenCalled();
+    await user.click(trigger);
+    await user.click(screen.getByRole('menuitem', { name: 'Cerrar sesion' }));
+    expect(logout).toHaveBeenCalledTimes(1);
+    await waitFor(() => expect(screen.queryByRole('menu')).not.toBeInTheDocument());
+  });
+
+  it('muestra la marca y permite cambiar el tema en el home sin sesion', async () => {
+    const user = userEvent.setup();
+    mockedUsePathname.mockReturnValue('/');
+    mockedUseAuth.mockReturnValue({ loading: false, logout: vi.fn(), user: null });
+
+    render(<GlobalHeader />);
+
+    expect(screen.getByRole('banner')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: /ir al inicio/i })).toHaveAttribute('href', '/');
+    expect(screen.getByRole('link', { name: 'GitHub' })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Activar tema oscuro' }));
+    expect(document.documentElement).toHaveAttribute('data-theme', 'dark');
+    await user.click(screen.getByRole('button', { name: 'Activar tema claro' }));
+    expect(document.documentElement).toHaveAttribute('data-theme', 'light');
   });
 
   it('no renderiza el header en la pagina de login aunque exista sesion', () => {

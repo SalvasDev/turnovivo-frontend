@@ -1,0 +1,7 @@
+.slotCard[data-slot-status] {
+  inline-size: 100%;
+}
+
+.slotCard[data-slot-status='mine'] {
+  border-color: var(--border-success);
+}

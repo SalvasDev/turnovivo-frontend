@@ -3,6 +3,14 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { apiService } from '@/services/api';
+import { Button, Input } from '@/design-system';
+import styles from '@/components/auth/AuthForm.module.css';
+
+function validatePassword(value: string) {
+  return value.length >= 8 && /[0-9]/.test(value)
+    ? null
+    : 'Use at least 8 characters, including one number.';
+}
 
 function getErrorMessage(err: unknown, fallback: string) {
   if (err instanceof Error && err.message) {
@@ -25,6 +33,12 @@ export default function RegisterPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (submitting || success) return;
+    const passwordError = validatePassword(password);
+    if (passwordError) {
+      setError(passwordError);
+      return;
+    }
     setError(null);
     setSubmitting(true);
 
@@ -44,79 +58,82 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-zinc-950 px-4">
-      <div className="w-full max-w-md bg-zinc-900 border border-zinc-800 rounded-2xl p-8 shadow-xl">
-        <div className="text-center mb-6" aria-live="polite">
-          <span className="text-amber-500 font-extrabold text-2xl tracking-tighter">TurnoVivo</span>
-          <h1 className="text-xl font-bold text-zinc-100 mt-2">Crea tu Cuenta de Cliente</h1>
-          <p className="text-xs text-zinc-400 mt-1">Regístrate para agendar tus turnos en tiempo real</p>
-        </div>
+    <div className={styles.page} lang="en">
+      <section className={styles.card} aria-labelledby="register-title">
+        <Link href="/" className={styles.brand} aria-label="TurnoVivo home">TURNOVIVO</Link>
+        <header className={styles.header}>
+          <h1 id="register-title" className={styles.title}>Create your account</h1>
+          <p className={styles.description}>Register to book your appointments in real time</p>
+        </header>
 
         {error && (
-          <div id={errorId} role="alert" className="mb-4 p-3 bg-red-500/10 border border-red-500/20 text-red-400 text-xs rounded-xl text-center font-medium">
-            🛑 {error}
+          <div id={errorId} role="alert" className={styles.error}>
+            {error}
           </div>
         )}
 
         {success && (
-          <div id={successId} role="status" aria-live="polite" className="mb-4 p-3 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs rounded-xl text-center font-medium animate-pulse">
-            🎉 ¡Cuenta creada con éxito! Redireccionando al login...
+          <div id={successId} role="status" aria-live="polite" className={styles.success}>
+            Account created successfully! Redirecting to sign in...
           </div>
         )}
 
         <form
           onSubmit={handleSubmit}
-          className="space-y-4"
-          noValidate
+          className={styles.form}
+          aria-labelledby="register-title"
+          aria-busy={submitting}
           aria-describedby={error ? errorId : success ? successId : undefined}
         >
-          <div>
-            <label htmlFor={emailInputId} className="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">Correo Electrónico</label>
-            <input
-              id={emailInputId}
-              type="email"
-              required
-              disabled={success}
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="tu-correo@gmail.com"
-              autoComplete="email"
-              aria-invalid={!!error}
-              className="w-full px-4 py-3 bg-zinc-950 border border-zinc-800 rounded-xl text-zinc-100 text-sm focus:outline-none focus:border-amber-500 transition-colors disabled:opacity-50"
-            />
-          </div>
-
-          <div>
-            <label htmlFor={passwordInputId} className="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">Contraseña</label>
-            <input
-              id={passwordInputId}
-              type="password"
-              required
-              disabled={success}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="Mínimo 6 caracteres"
-              autoComplete="new-password"
-              minLength={6}
-              aria-invalid={!!error}
-              className="w-full px-4 py-3 bg-zinc-950 border border-zinc-800 rounded-xl text-zinc-100 text-sm focus:outline-none focus:border-amber-500 transition-colors disabled:opacity-50"
-            />
-          </div>
-
-          <button
+          <Input
+            id={emailInputId}
+            label="Email"
+            name="email"
+            type="email"
+            isRequired
+            isDisabled={success}
+            isReadOnly={submitting}
+            value={email}
+            onChange={setEmail}
+            placeholder="name@company.com"
+            autoComplete="email"
+            isInvalid={!!error}
+            aria-describedby={error ? errorId : undefined}
+          />
+          <Input
+            id={passwordInputId}
+            label="Password"
+            name="password"
+            type="password"
+            isRequired
+            isDisabled={success}
+            isReadOnly={submitting}
+            value={password}
+            onChange={setPassword}
+            placeholder="your password"
+            autoComplete="new-password"
+            minLength={8}
+            validate={validatePassword}
+            helperText="At least 8 characters, including one number"
+            isInvalid={!!error}
+            aria-describedby={error ? errorId : undefined}
+          />
+          <Button
             type="submit"
-            disabled={submitting || success}
-            aria-busy={submitting}
-            className="w-full py-3 mt-2 bg-amber-500 hover:bg-amber-600 text-zinc-950 font-bold rounded-xl text-sm transition-colors disabled:opacity-50"
+            variant="filled"
+            isDisabled={submitting || success}
+            className={styles.submit}
           >
-            {submitting ? 'Creando cuenta...' : 'Registrarme'}
-          </button>
+            {submitting ? 'Creating account...' : 'Create account'}
+          </Button>
         </form>
 
-        <div className="mt-6 pt-4 border-t border-zinc-800/60 text-center text-xs text-zinc-500">
-          ¿Ya tienes cuenta? <Link href="/login" className="text-amber-500 hover:underline font-medium">Inicia sesión aquí</Link>
+        <div className={styles.signUp}>
+          <span>Already have an account?</span>
+          <Link href="/login" className={styles.signUpLink}>Sign in</Link>
         </div>
-      </div>
+        <p className={styles.demoPassword}><strong>Password demo:</strong> password123</p>
+      </section>
     </div>
   );
 }

@@ -12,9 +12,11 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@internationalized/date": "^3.12.4",
     "js-cookie": "^3.0.8",
     "next": "16.2.9",
     "react": "19.2.4",
+    "react-aria-components": "^1.22.1",
     "react-dom": "19.2.4"
   },
   "devDependencies": {

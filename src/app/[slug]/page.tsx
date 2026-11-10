@@ -1,9 +1,10 @@
 
 import { apiService } from '@/services/api';
-import AppointmentGrid from '@/components/AppointmentGrid';
+import { AppointmentGrid } from '@/components/appointment-grid';
 import { notFound, redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
 import { AppointmentSlot, Business } from '@/types';
+import styles from './page.module.css';
 
 export const dynamic = 'force-dynamic'; 
 
@@ -39,20 +40,14 @@ export default async function BusinessPage({ params }: PageProps) {
   }
 
   return (
-    <section className="min-h-screen bg-zinc-950 text-zinc-50 flex flex-col items-center pb-12 select-none" aria-labelledby="business-page-title">
-      <div className="w-full max-w-4xl px-4 pt-8">
-        <header className="border-b border-zinc-800 pb-6 text-center sm:text-left flex flex-col sm:flex-row justify-between items-center gap-4">
-          <div>
-            <span className="text-xs uppercase tracking-widest font-semibold text-emerald-500">
-              Establecimiento Verificado
-            </span>
-            <h1 id="business-page-title" className="text-3xl font-extrabold tracking-tight mt-1 text-zinc-100 sm:text-4xl">
-              {business.name}
-            </h1>
-          </div>
+    <section className={styles.page} aria-labelledby="business-page-title">
+      <div className={styles.content}>
+        <header className={styles.header}>
+          <h1 id="business-page-title" className={styles.title}>
+            {business.name}
+          </h1>
         </header>
-        <section className="mt-8" aria-labelledby="available-slots-title">
-          <h2 id="available-slots-title" className="text-xl font-bold text-zinc-200">Horarios Disponibles para Hoy</h2>
+        <section aria-label="Appointment availability">
           <AppointmentGrid 
             initialSlots={availableSlots} 
             businessId={business.id} 

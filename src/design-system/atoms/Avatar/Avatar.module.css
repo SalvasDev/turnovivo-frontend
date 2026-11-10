@@ -1,0 +1,32 @@
+.avatar {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  inline-size: var(--size-32);
+  block-size: var(--size-32);
+  overflow: hidden;
+  border-radius: var(--radius-radius-full);
+  background: var(--neutral-30);
+  color: var(--icon-tertiary);
+  font-family: var(--font-family-inter), sans-serif;
+  font-size: var(--font-size-12);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-16);
+  letter-spacing: 0;
+  vertical-align: middle;
+}
+
+.icon {
+  inline-size: var(--size-20);
+  block-size: var(--size-20);
+}
+
+.photo {
+  inline-size: 100%;
+  block-size: 100%;
+  object-fit: cover;
+}
+
+:global([data-theme='dark']) .avatar {
+  background: var(--surface-tertiary);
+}

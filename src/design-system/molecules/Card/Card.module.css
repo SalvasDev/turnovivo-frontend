@@ -1,0 +1,61 @@
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-24);
+  box-sizing: border-box;
+  inline-size: calc(var(--size-64) * 3 + var(--size-12));
+  max-inline-size: 100%;
+  min-inline-size: 0;
+  min-block-size: calc(var(--size-64) * 2 + var(--size-32));
+  padding: var(--space-16);
+  border: thin solid var(--border-secondary);
+  border-radius: var(--radius-16);
+  background: var(--surface-primary);
+  color: var(--text-primary);
+  font-family: var(--font-family-inter), sans-serif;
+}
+
+.badges {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  inline-size: 100%;
+  min-inline-size: 0;
+}
+
+.title {
+  inline-size: 100%;
+  min-inline-size: 0;
+  margin: 0;
+  font-size: var(--font-size-24);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-28);
+  letter-spacing: 0;
+  text-align: center;
+  overflow-wrap: anywhere;
+}
+
+.card .action {
+  --button-outline-border: var(--text-tertiary);
+  --button-outline-text: var(--text-tertiary);
+  --button-outline-surface-hover: var(--surface-hover);
+  --button-outline-surface-pressed: var(--surface-pressed);
+  inline-size: 100%;
+  min-block-size: var(--size-32);
+  margin-block-start: auto;
+  padding: var(--space-8) var(--space-16);
+  font-size: var(--font-size-14);
+  line-height: var(--line-height-16);
+}
+
+.card .action[data-variant='outlined'] {
+  box-shadow: inset 0 0 0 calc(var(--size-2) / 2) var(--button-outline-border);
+}
+
+.card .action[data-variant='outlined'][data-disabled] {
+  box-shadow: inset 0 0 0 calc(var(--size-2) / 2) var(--button-outline-border-disabled);
+}

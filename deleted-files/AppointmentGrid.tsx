@@ -5,8 +5,12 @@ import { AppointmentSlot } from '@/types';
 import Cookies from 'js-cookie';
 import { useUI } from '@/context/UIContext';
 import SlotCard from './appointment-grid/SlotCard';
-import HoldOfferModal from './appointment-grid/HoldOfferModal';
+import HoldOfferModal from './appointment-grid/hold-offer-modal/HoldOfferModal';
 import { apiService, BookResponse } from '@/services/api';
+import { parseDate, type CalendarDate } from '@internationalized/date';
+import { I18nProvider } from 'react-aria-components';
+import { Button, DatePicker } from '@/design-system';
+import styles from './AppointmentGrid.module.css';
 
 interface AppointmentGridProps {
   initialSlots: AppointmentSlot[];
@@ -21,6 +25,13 @@ function getErrorMessage(err: unknown, fallback: string) {
   return fallback;
 }
 
+function isActiveBooking(slot: AppointmentSlot, userId: string, localBlocks: Record<string, string>) {
+  return slot.status === 'RESERVED'
+    && slot.appointment?.customerId === userId
+    && !localBlocks[slot.id]
+    && !slot.slotBlocks?.some((block) => block.customerId === userId);
+}
+
 export default function AppointmentGrid({ initialSlots, businessId, serverUserId }: AppointmentGridProps) {
   const { success, error, info, warning, loading, confirm } = useUI();
   const [slots, setSlots] = useState<AppointmentSlot[]>(initialSlots);
@@ -30,22 +41,26 @@ export default function AppointmentGrid({ initialSlots, businessId, serverUserId
   const [countdown, setCountdown] = useState<number>(30);
   const [rejectedSlotIds, setRejectedSlotIds] = useState<string[]>([]);
   const [localBlocks, setLocalBlocks] = useState<Record<string, 'CANCELLED' | 'DECLINED'>>({});
-  const initialBookedSlot = initialSlots.find((s) => s.appointment?.customerId === serverUserId);
+  const [selectedDate, setSelectedDate] = useState<CalendarDate | null>(null);
+  const initialBookedSlot = initialSlots.find((slot) => isActiveBooking(slot, serverUserId, localBlocks));
 
   const [myBookedSlotId, setMyBookedSlotId] = useState<string | null>(initialBookedSlot ? initialBookedSlot.id : null);
   const [myWaitlistSlotIds, setMyWaitlistSlotIds] = useState<string[]>([]);
 
   const formatTime = (isoString: string) => {
-    return new Date(isoString).toLocaleTimeString('es-MX', {
+    const parts = new Intl.DateTimeFormat('en-US', {
       hour: '2-digit',
       minute: '2-digit',
       hour12: true,
-    });
+    }).formatToParts(new Date(isoString));
+    return parts.map((part) => part.type === 'dayPeriod'
+      ? (part.value === 'AM' ? 'A.M.' : 'P.M.')
+      : part.value.replace(/\s+/g, ' ')).join('');
   };
 
   const formatDateHeader = (isoString: string) => {
     const date = new Date(isoString);
-    return date.toLocaleDateString('es-MX', {
+    return date.toLocaleDateString('en-US', {
       weekday: 'long',
       day: 'numeric',
       month: 'long',
@@ -56,7 +71,11 @@ export default function AppointmentGrid({ initialSlots, businessId, serverUserId
     return new Date(isoString).toISOString().split('T')[0];
   };
 
-  const groupedSlots = slots.reduce((acc, slot) => {
+  const visibleSlots = selectedDate
+    ? slots.filter((slot) => getDateKey(slot.startTime) === selectedDate.toString())
+    : slots;
+  const myBookedSlot = slots.find((slot) => slot.id === myBookedSlotId);
+  const groupedSlots = visibleSlots.reduce((acc, slot) => {
     const dateKey = getDateKey(slot.startTime);
     if (!acc[dateKey]) {
       acc[dateKey] = [];
@@ -67,16 +86,14 @@ export default function AppointmentGrid({ initialSlots, businessId, serverUserId
 
   const sortedDates = Object.keys(groupedSlots).sort();
   useEffect(() => {
+    let cancelled = false;
     const fetchFreshData = async () => {
       try {
         const freshSlots = await apiService.getAvailableSlots(businessId);
+        if (cancelled) return;
         setSlots(freshSlots);
-        const freshMine = freshSlots.find((s) => s.appointment?.customerId === serverUserId);
-        if (freshMine) {
-          setMyBookedSlotId(freshMine.id);
-        } else if (myBookedSlotId && !freshSlots.find((s) => s.id === myBookedSlotId && s.appointment?.customerId === serverUserId)) {
-          setMyBookedSlotId(null);
-        }
+        const freshMine = freshSlots.find((slot) => isActiveBooking(slot, serverUserId, localBlocks));
+        setMyBookedSlotId(freshMine?.id ?? null);
         const myHold = freshSlots.find(
           (s) => s.status === 'HOLD' && s.appointment?.customerId === serverUserId,
         );
@@ -92,14 +109,17 @@ export default function AppointmentGrid({ initialSlots, businessId, serverUserId
       } catch (err) {
         console.error('Error de red en sondeo:', err);
       } finally {
-        setIsSyncing(false);
+        if (!cancelled) setIsSyncing(false);
       }
     };
 
     void fetchFreshData();
     const interval = setInterval(fetchFreshData, 3000);
-    return () => clearInterval(interval);
-  }, [businessId, activeHoldSlot, serverUserId, myBookedSlotId, rejectedSlotIds]);
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+    };
+  }, [businessId, activeHoldSlot, serverUserId, myBookedSlotId, rejectedSlotIds, localBlocks]);
   useEffect(() => {
     if (!activeHoldSlot) return;
     const timer = setInterval(() => {
@@ -273,27 +293,37 @@ export default function AppointmentGrid({ initialSlots, businessId, serverUserId
     }
   };
 
-  if (!slots || slots.length === 0) {
-    return (
-      <div role="status" aria-live="polite" className="text-center py-12 bg-zinc-900 rounded-xl border border-zinc-800 mt-8">
-        <p className="text-zinc-400 font-medium">
-          {isSyncing
-            ? 'Sincronizando la agenda con el servidor...'
-            : 'No hay horarios disponibles por ahora. Si es entorno local, ejecuta el seed para regenerar turnos demo.'}
-        </p>
-      </div>
-    );
-  }
-
   return (
-    <section className="mt-8 relative" aria-label="Grilla de turnos disponibles">
-      <div className="space-y-8">
+    <section className={styles.agenda} aria-label="Available appointments" lang="en">
+      <div className={styles.toolbar}>
+        <I18nProvider locale="en-GB">
+          <DatePicker value={selectedDate} onChange={setSelectedDate} />
+        </I18nProvider>
+      </div>
+      {myBookedSlot && (
+        <div className={styles.bookingNotice} role="status">
+          <span>Your appointment: {formatDateHeader(myBookedSlot.startTime)}, {formatTime(myBookedSlot.startTime)}</span>
+          <Button variant="text" onPress={() => setSelectedDate(parseDate(getDateKey(myBookedSlot.startTime)))}>
+            View appointment
+          </Button>
+        </div>
+      )}
+      {visibleSlots.length === 0 && (
+        <div role="status" aria-live="polite" className={styles.empty}>
+          {isSyncing
+            ? 'Syncing appointments...'
+            : selectedDate
+              ? 'No appointments available for this date.'
+              : 'No appointments available right now.'}
+        </div>
+      )}
+      <div className={styles.dates}>
         {sortedDates.map((dateKey) => (
-          <div key={dateKey} className="space-y-3">
-            <h3 className="text-lg font-semibold text-white capitalize border-b border-zinc-700 pb-2">
+          <div key={dateKey} className={styles.dateGroup}>
+            <h2 className={styles.dateTitle}>
               {formatDateHeader(groupedSlots[dateKey][0].startTime)}
-            </h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4" role="list" aria-live="polite">
+            </h2>
+            <div className={styles.slots} role="list" aria-label={formatDateHeader(groupedSlots[dateKey][0].startTime)} aria-live="polite">
               {groupedSlots[dateKey].map((slot) => (
                 <SlotCard
                   key={slot.id}

@@ -1,0 +1,36 @@
+.body {
+  --font-family-inter: var(--font-inter);
+  margin: 0;
+  background: var(--surface-primary);
+  color: var(--text-primary);
+  font-family: var(--font-inter), sans-serif;
+}
+
+.shell {
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  min-block-size: 100dvh;
+  background: var(--surface-primary);
+}
+
+.main {
+  flex: 1;
+  min-inline-size: 0;
+}
+
+.skipLink {
+  position: fixed;
+  z-index: 100;
+  inset-block-start: var(--space-8);
+  inset-inline-start: var(--space-8);
+  padding: var(--space-12) var(--space-16);
+  border-radius: var(--radius-4);
+  background: var(--surface-brand-primary-dark);
+  color: var(--text-inverse);
+  transform: translateY(-200%);
+}
+
+.skipLink:focus {
+  transform: translateY(0);
+}

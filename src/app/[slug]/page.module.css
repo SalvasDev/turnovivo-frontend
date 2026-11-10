@@ -1,0 +1,27 @@
+.page {
+  box-sizing: border-box;
+  inline-size: 100%;
+  padding: calc(var(--space-48) - var(--space-2)) var(--space-16) var(--space-80);
+  background: var(--surface-primary);
+  color: var(--text-primary);
+  font-family: var(--font-family-inter), sans-serif;
+}
+
+.content {
+  max-inline-size: calc(var(--size-64) * 13 + var(--size-32));
+  min-inline-size: 0;
+  margin-inline: auto;
+}
+
+.header {
+  margin-block-end: calc(var(--space-64) - var(--space-4));
+}
+
+.title {
+  margin: 0;
+  font-size: var(--font-size-32);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-36);
+  letter-spacing: 0;
+  overflow-wrap: anywhere;
+}

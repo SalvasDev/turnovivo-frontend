@@ -1,0 +1,65 @@
+.viewport {
+  max-inline-size: 100%;
+  min-inline-size: 0;
+  overflow: auto;
+  border: thin solid var(--border-secondary);
+  border-radius: var(--radius-8);
+  background: var(--surface-primary);
+}
+
+.viewport:focus-visible {
+  outline: var(--size-2) solid var(--border-focus);
+  outline-offset: var(--space-2);
+}
+
+.table {
+  inline-size: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  color: var(--text-primary);
+  font-family: var(--font-family-inter), sans-serif;
+  font-size: var(--font-size-16);
+  line-height: var(--line-height-20);
+  letter-spacing: 0;
+  text-align: start;
+}
+
+.caption {
+  position: absolute;
+  inline-size: calc(var(--size-2) / 2);
+  block-size: calc(var(--size-2) / 2);
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.header {
+  box-sizing: border-box;
+  block-size: calc(var(--size-40) + var(--size-4));
+  padding: var(--space-12) var(--space-20);
+  background: var(--surface-secondary);
+  font-weight: var(--font-weight-semibold);
+  text-align: start;
+  overflow-wrap: anywhere;
+}
+
+.cell {
+  box-sizing: border-box;
+  block-size: var(--size-64);
+  padding: var(--space-16) var(--space-20);
+  border-block-start: thin solid var(--border-tertiary);
+  font-weight: var(--font-weight-regular);
+  text-align: start;
+  vertical-align: middle;
+  overflow-wrap: anywhere;
+}
+
+.row:hover {
+  background: var(--surface-hover);
+}
+
+.empty {
+  padding: var(--space-32) var(--space-20);
+  color: var(--text-secondary);
+  text-align: center;
+}

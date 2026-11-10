@@ -1,0 +1,37 @@
+.page {
+  box-sizing: border-box;
+  inline-size: 100%;
+  padding: var(--space-72) var(--space-16) var(--space-80);
+  background: var(--surface-primary);
+  color: var(--text-primary);
+  font-family: var(--font-family-inter), sans-serif;
+}
+
+.content {
+  max-inline-size: calc(var(--size-64) * 13 + var(--size-32));
+  min-inline-size: 0;
+  margin-inline: auto;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-16);
+  margin-block-end: var(--space-32);
+}
+
+.title {
+  margin: 0;
+  font-size: var(--font-size-32);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-36);
+  letter-spacing: 0;
+  overflow-wrap: anywhere;
+}
+
+.description {
+  margin: 0;
+  font-size: var(--font-size-16);
+  line-height: var(--line-height-20);
+  overflow-wrap: anywhere;
+}

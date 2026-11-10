@@ -1,0 +1,105 @@
+.toast {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  box-sizing: border-box;
+  inline-size: calc(var(--size-64) * 6 - var(--size-8) - var(--size-2) / 2);
+  max-inline-size: 100%;
+  min-inline-size: 0;
+  min-block-size: var(--size-40);
+  padding: var(--space-8) var(--space-12);
+  border-radius: var(--radius-8);
+  background: var(--toast-background);
+  color: var(--toast-foreground);
+  font-family: var(--font-family-inter), sans-serif;
+  font-size: var(--font-size-16);
+  font-weight: var(--font-weight-semibold);
+  line-height: var(--line-height-20);
+  letter-spacing: 0;
+}
+
+.toast[data-variant='success'] {
+  --toast-background: var(--surface-success-light);
+  --toast-foreground: var(--color-alert-success-dark);
+}
+
+.toast[data-variant='info'],
+.toast[data-variant='loading'] {
+  --toast-background: var(--surface-info-light);
+  --toast-foreground: var(--color-alert-info-dark);
+}
+
+.toast[data-variant='warning'] {
+  --toast-background: var(--surface-warning-light);
+  --toast-foreground: var(--color-alert-warning-dark);
+}
+
+.toast[data-variant='error'] {
+  --toast-background: var(--surface-error-light);
+  --toast-foreground: var(--color-alert-error-dark);
+}
+
+.message {
+  flex: 1;
+  min-inline-size: 0;
+  overflow-wrap: anywhere;
+}
+
+.icon,
+.closeIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: none;
+  inline-size: var(--size-24);
+  block-size: var(--size-24);
+}
+
+.icon > svg {
+  inline-size: var(--size-20);
+  block-size: var(--size-20);
+}
+
+.toast[data-variant='success'] .icon > svg {
+  inline-size: calc(var(--size-24) * 0.6);
+  block-size: calc(var(--size-24) * 0.6);
+}
+
+.toast .dismiss {
+  --button-text-label: var(--color-alert-info-dark);
+  --button-text-surface-hover: var(--overlay-1);
+  --button-text-surface-pressed: var(--overlay-2);
+  flex: none;
+  inline-size: var(--size-24);
+  block-size: var(--size-24);
+  min-block-size: var(--size-24);
+  padding: 0;
+  border-radius: var(--radius-4);
+  color: var(--neutral-80);
+}
+
+.closeIcon > svg {
+  inline-size: calc(var(--size-12) + var(--size-2));
+  block-size: calc(var(--size-12) + var(--size-2));
+}
+
+.toast .dismiss[data-focus-visible] {
+  outline: var(--size-2) solid var(--toast-foreground);
+  outline-offset: var(--space-2);
+}
+
+.toast[data-variant='loading'] .icon > svg {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast[data-variant='loading'] .icon > svg {
+    animation: none;
+  }
+}

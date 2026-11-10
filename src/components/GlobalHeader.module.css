@@ -1,0 +1,173 @@
+.header {
+  position: sticky;
+  inset-block-start: 0;
+  z-index: 40;
+  background: var(--surface-primary);
+  color: var(--text-primary);
+  border-block-end: thin solid var(--border-primary);
+}
+
+.homeHeader {
+  position: relative;
+  background: var(--surface-transparent);
+}
+
+.inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-24);
+  min-block-size: calc(var(--size-64) + var(--size-20));
+  max-inline-size: 80rem;
+  margin-inline: auto;
+  padding-inline: var(--space-32);
+}
+
+.brand {
+  color: var(--text-brand-primary);
+  font-family: var(--font-maven-pro), var(--font-family-inter), sans-serif;
+  font-size: var(--font-size-32);
+  font-weight: 800;
+  line-height: var(--line-height-40);
+  text-decoration: none;
+}
+
+:global([data-theme="dark"]) .brand {
+  color: var(--neutral-0);
+}
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-16);
+}
+
+.iconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  inline-size: var(--size-40);
+  block-size: var(--size-40);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-4);
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+}
+
+.iconButton:hover {
+  background: var(--surface-hover);
+}
+
+.brand:focus-visible,
+.iconButton:focus-visible,
+.menuButton[data-focus-visible] {
+  outline: var(--size-2) solid var(--border-focus);
+  outline-offset: var(--space-4);
+}
+
+.menuButton {
+  display: grid;
+  place-items: center;
+  inline-size: var(--size-40);
+  block-size: var(--size-40);
+  padding: 0;
+  border: 0;
+  border-radius: var(--radius-radius-full);
+  background: var(--surface-transparent);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+
+.menuButton[data-hovered] {
+  background: var(--surface-hover);
+}
+
+.menuButton[data-pressed],
+.menuButton[aria-expanded='true'] {
+  background: var(--surface-pressed);
+}
+
+.identity {
+  padding: var(--space-12);
+  border-block-end: thin solid var(--border-secondary);
+  margin-block-end: var(--space-4);
+  color: var(--text-primary);
+  text-align: start;
+  font-size: var(--font-size-14);
+  line-height: var(--line-height-20);
+  overflow-wrap: anywhere;
+}
+
+.identity p {
+  margin: 0;
+}
+
+.role {
+  color: var(--text-secondary);
+  font-size: var(--font-size-12);
+  text-transform: uppercase;
+}
+
+.popover {
+  box-sizing: border-box;
+  inline-size: calc(var(--size-64) * 3 + var(--size-16));
+  max-inline-size: calc(100vw - var(--space-32));
+  padding: var(--space-8);
+  border: thin solid var(--border-secondary);
+  border-radius: var(--radius-8);
+  background: var(--surface-primary);
+  box-shadow: var(--effects-shadow-3);
+}
+
+.menu {
+  outline: none;
+  font-family: var(--font-family-inter), sans-serif;
+}
+
+.menuItem {
+  display: block;
+  box-sizing: border-box;
+  inline-size: 100%;
+  padding: var(--space-12);
+  border: 0;
+  border-radius: var(--radius-4);
+  background: transparent;
+  color: var(--text-primary);
+  font: inherit;
+  font-size: var(--font-size-14);
+  text-align: start;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.menuItem[data-hovered],
+.menuItem[data-focused] {
+  background: var(--surface-hover);
+}
+
+.menuItem[data-focus-visible] {
+  outline: var(--size-2) solid var(--border-focus);
+  outline-offset: calc(-1 * var(--space-2));
+}
+
+.menuItem[data-pressed] {
+  background: var(--surface-pressed);
+}
+
+@media (max-width: 40rem) {
+  .inner {
+    gap: var(--space-8);
+    padding-inline: var(--space-16);
+  }
+
+  .brand {
+    font-size: var(--font-size-24);
+  }
+
+  .actions {
+    gap: var(--space-4);
+  }
+
+}

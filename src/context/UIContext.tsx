@@ -2,17 +2,18 @@
 
 import {
   createContext,
-  KeyboardEvent,
   ReactNode,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
   useRef,
   useState,
 } from 'react';
+import { Toast, type ToastVariant } from '@/design-system/molecules/Toast';
+import { ConfirmDialog, type ConfirmDialogVariant } from '@/design-system/molecules/ConfirmDialog';
+import styles from './UIContext.module.css';
 
-type ToastType = 'success' | 'error' | 'info' | 'warning' | 'loading';
+type ToastType = ToastVariant;
 
 interface ToastOptions {
   duration?: number;
@@ -31,6 +32,7 @@ interface ConfirmOptions {
   confirmText?: string;
   cancelText?: string;
   tone?: 'default' | 'danger';
+  variant?: ConfirmDialogVariant;
 }
 
 interface ConfirmState extends ConfirmOptions {
@@ -47,22 +49,6 @@ interface UIContextType {
 }
 
 const UIContext = createContext<UIContextType | undefined>(undefined);
-
-function toastClassesByType(type: ToastType) {
-  if (type === 'success') {
-    return 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300';
-  }
-  if (type === 'error') {
-    return 'border-red-500/40 bg-red-500/10 text-red-300';
-  }
-  if (type === 'warning') {
-    return 'border-amber-500/40 bg-amber-500/10 text-amber-200';
-  }
-  if (type === 'loading') {
-    return 'border-sky-500/40 bg-sky-500/10 text-sky-200';
-  }
-  return 'border-amber-500/40 bg-amber-500/10 text-amber-200';
-}
 
 function defaultDurationByType(type: ToastType) {
   if (type === 'success') return 2400;
@@ -96,9 +82,6 @@ export function UIProvider({ children }: { children: ReactNode }) {
   });
 
   const resolveConfirmRef = useRef<((value: boolean) => void) | null>(null);
-  const confirmDialogRef = useRef<HTMLDivElement>(null);
-  const cancelButtonRef = useRef<HTMLButtonElement>(null);
-  const lastFocusedElementRef = useRef<HTMLElement | null>(null);
 
   const dismissToast = useCallback((id: string) => {
     setToasts((prev) => prev.filter((toast) => toast.id !== id));
@@ -138,7 +121,6 @@ export function UIProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const confirm = useCallback((options: ConfirmOptions) => {
-    lastFocusedElementRef.current = document.activeElement as HTMLElement;
     setConfirmState({
       open: true,
       title: options.title || 'Confirmar accion',
@@ -146,6 +128,7 @@ export function UIProvider({ children }: { children: ReactNode }) {
       confirmText: options.confirmText || 'Confirmar',
       cancelText: options.cancelText || 'Cancelar',
       tone: options.tone || 'default',
+      variant: options.variant,
     });
 
     return new Promise<boolean>((resolve) => {
@@ -165,113 +148,36 @@ export function UIProvider({ children }: { children: ReactNode }) {
     [success, error, info, warning, loading, confirm],
   );
 
-  useEffect(() => {
-    if (!confirmState.open) {
-      lastFocusedElementRef.current?.focus();
-      return;
-    }
-
-    cancelButtonRef.current?.focus();
-  }, [confirmState.open]);
-
-  const handleConfirmKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
-    if (event.key === 'Escape') {
-      closeConfirm(false);
-      return;
-    }
-
-    if (event.key !== 'Tab') {
-      return;
-    }
-
-    const focusableEls = confirmDialogRef.current?.querySelectorAll<HTMLElement>(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])',
-    );
-
-    if (!focusableEls || focusableEls.length === 0) {
-      return;
-    }
-
-    const first = focusableEls[0];
-    const last = focusableEls[focusableEls.length - 1];
-    const active = document.activeElement;
-
-    if (event.shiftKey && active === first) {
-      event.preventDefault();
-      last.focus();
-    } else if (!event.shiftKey && active === last) {
-      event.preventDefault();
-      first.focus();
-    }
-  };
-
   return (
     <UIContext.Provider value={value}>
       {children}
 
       <div
-        className="pointer-events-none fixed right-4 top-20 z-70 flex w-[min(24rem,92vw)] flex-col gap-2"
-        role="status"
-        aria-live="polite"
-        aria-atomic="false"
+        className={styles.toasts}
+        role="region"
+        aria-label="Notificaciones"
       >
         {toasts.map((toast) => (
-          <div
+          <Toast
             key={toast.id}
-            role={toast.type === 'error' ? 'alert' : 'status'}
-            aria-live={toast.type === 'error' ? 'assertive' : 'polite'}
-            className={`pointer-events-auto rounded-xl border px-4 py-3 text-sm font-semibold shadow-xl ${toastClassesByType(
-              toast.type,
-            )}`}
+            variant={toast.type}
+            onDismiss={() => dismissToast(toast.id)}
           >
-            <div className="flex items-center gap-2">
-              {toast.type === 'loading' && (
-                <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-sky-200 border-t-transparent" />
-              )}
-              <span>{toast.message}</span>
-            </div>
-          </div>
+            {toast.message}
+          </Toast>
         ))}
       </div>
 
-      {confirmState.open && (
-        <div className="fixed inset-0 z-80 flex items-center justify-center bg-black/70 p-4 backdrop-blur-sm">
-          <div
-            ref={confirmDialogRef}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="ui-confirm-title"
-            aria-describedby="ui-confirm-description"
-            onKeyDown={handleConfirmKeyDown}
-            className="w-full max-w-md rounded-2xl border border-zinc-800 bg-zinc-900 p-6 shadow-2xl"
-          >
-            <h3 id="ui-confirm-title" className="text-lg font-black text-zinc-100">{confirmState.title}</h3>
-            <p id="ui-confirm-description" className="mt-2 text-sm leading-relaxed text-zinc-300">{confirmState.description}</p>
-
-            <div className="mt-6 flex justify-end gap-2">
-              <button
-                ref={cancelButtonRef}
-                type="button"
-                onClick={() => closeConfirm(false)}
-                className="rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-2 text-sm font-semibold text-zinc-200 hover:bg-zinc-700"
-              >
-                {confirmState.cancelText}
-              </button>
-              <button
-                type="button"
-                onClick={() => closeConfirm(true)}
-                className={`rounded-lg px-4 py-2 text-sm font-black ${
-                  confirmState.tone === 'danger'
-                    ? 'bg-red-500 text-zinc-950 hover:bg-red-600'
-                    : 'bg-emerald-500 text-zinc-950 hover:bg-emerald-600'
-                }`}
-              >
-                {confirmState.confirmText}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmDialog
+        isOpen={confirmState.open}
+        title={confirmState.title || 'Confirmar accion'}
+        description={confirmState.description}
+        confirmText={confirmState.confirmText}
+        cancelText={confirmState.cancelText}
+        variant={confirmState.variant ?? (confirmState.tone === 'danger' ? 'destructive' : 'confirm')}
+        onConfirm={() => closeConfirm(true)}
+        onCancel={() => closeConfirm(false)}
+      />
     </UIContext.Provider>
   );
 }

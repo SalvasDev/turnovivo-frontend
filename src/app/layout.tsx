@@ -1,8 +1,15 @@
 import type { Metadata } from "next";
+import { Inter, Maven_Pro } from "next/font/google";
 import "./globals.css";
+import "@/design-system/tokens/tokens.css";
 import { AuthProvider } from "@/context/AuthContext";
 import GlobalHeader from "@/components/GlobalHeader";
+import GlobalFooter from "@/components/GlobalFooter";
 import { UIProvider } from "@/context/UIContext";
+import styles from "./layout.module.css";
+
+const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
+const mavenPro = Maven_Pro({ subsets: ["latin"], variable: "--font-maven-pro", display: "swap" });
 
 export const metadata: Metadata = {
   title: "TurnoVivo App",
@@ -11,21 +18,22 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es">
-      <body className="antialiased bg-zinc-950">
+    <html lang="es" className={`${inter.variable} ${mavenPro.variable}`}>
+      <body className={styles.body}>
         <a
           href="#main-content"
-          className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-100 focus:rounded-md focus:bg-emerald-500 focus:px-3 focus:py-2 focus:font-bold focus:text-zinc-950"
+          className={styles.skipLink}
         >
           Saltar al contenido principal
         </a>
         <AuthProvider>
           <UIProvider>
-            <div className="min-h-screen bg-zinc-950">
+            <div className={styles.shell}>
               <GlobalHeader />
-              <main id="main-content" tabIndex={-1} className="focus:outline-none">
+              <main id="main-content" tabIndex={-1} className={styles.main}>
                 {children}
               </main>
+              <GlobalFooter />
             </div>
           </UIProvider>
         </AuthProvider>
