@@ -18,7 +18,14 @@ component library I designed in Figma and implemented from scratch.
   submissions), route-level loading and error boundaries, offline notice when polling fails, empty vs error
   states kept distinct.
 - **Light and dark themes** — persisted choice applied before first paint (no flash), `color-scheme` aware.
-- **Quality gates in CI** — ESLint, Stylelint token enforcement, type check, 200+ tests, production build.
+- **Mobile first** — the full booking flow works on a phone, 44px touch targets on days and slots, tables
+  stack into cards under 640px, zero layout shift (CLS 0).
+- **Race-condition safe** — one request per action in the UI, newer availability requests cancel older ones,
+  and two customers booking the same slot at once were verified to produce exactly one winner.
+- **Quality gates in CI** — ESLint, Stylelint token enforcement, type check, 270+ tests, production build.
+
+Lighthouse (mobile, production build): performance 86–93, accessibility 100 on the booking page, the design
+system page and the auth pages.
 
 ## Stack
 
@@ -34,7 +41,7 @@ component library I designed in Figma and implemented from scratch.
 
 ```
 src/design-system/
-├── tokens/        primitives · color aliases · typography · dimensions · effects
+├── tokens/        primitives · color aliases · typography · dimensions · effects · layout
 │                  semantic-light · semantic-dark · component tokens
 ├── icons/         typed SVG registry
 ├── atoms/         Button · Input · Select · Badge · Avatar · Icon · Spinner · Divider
@@ -44,7 +51,9 @@ src/design-system/
 
 Rules the codebase follows (and CI enforces):
 
-- **No raw values outside `tokens/`.** Stylelint rejects hex colors, named colors, `rgb()/hsl()` and `px`.
+- **No raw values outside `tokens/`.** Stylelint rejects hex colors, named colors, `rgb()/hsl()`, the units
+  `px rem em ms s deg`, bare `transparent`, and numeric `z-index`, `opacity`, `font-weight` and `line-height`.
+  Media queries may only use the breakpoint scale.
 - **States come from React Aria data attributes** — `[data-hovered]`, `[data-pressed]`, `[data-disabled]`,
   `[data-pending]`, `[data-focus-visible]`.
 - **Components expose CSS custom properties as their public styling API** (e.g. `--button-solid`,
@@ -83,6 +92,8 @@ NEXT_PUBLIC_API_URL=http://localhost:3000
 NEXT_PUBLIC_DEFAULT_BUSINESS_SLUG=barberia-premium
 NEXT_PUBLIC_DEFAULT_BUSINESS_NAME="Barberia Premium"
 NEXT_PUBLIC_REPOSITORY_URL=https://github.com/<user>/<repo>
+NEXT_PUBLIC_BUSINESS_TIME_ZONE=America/Mexico_City   # IANA zone; must match the backend
+NEXT_PUBLIC_APP_LOCALE=en-US                          # es-MX switches every date, time and duration
 ```
 
 The design system showcase (`/design-system`) works without the backend.
@@ -94,6 +105,7 @@ Password for all: `password123`
 | Role | Email | What to try |
 | --- | --- | --- |
 | Client | `cliente.real@turnovivo.com` | Book, join/leave the waitlist, cancel and watch the cascade |
+| Client 2 | `cliente.real2@turnovivo.com` | Open a second browser and race client 1 for the same slot |
 | Admin | `admin@turnovivo.com` | Force-cancel appointments from the operations console |
 | Super admin | `super.admin@turnovivo.com` | Create, edit and deactivate companies and admins |
 
@@ -116,15 +128,52 @@ src/
 │   ├── (main)/          home · [slug] booking · admin · super-admin · design-system
 │   │                    shared loading.tsx and error.tsx boundaries
 │   └── (auth)/          login · register
-├── components/          feature components (agenda, admin, super admin, header, showcase)
-├── context/             auth (cookie store), UI (toasts and confirm), theme
+├── components/          feature UI only (agenda, admin, super admin, header, showcase)
+├── hooks/               data hooks: live slots polling, super-admin directory, clock
+├── domain/              pure business rules: slots, dates/format, validation, access
+├── services/
+│   ├── http-client.ts   the only fetch: token, transport and HTTP errors, abort support
+│   ├── api.ts           typed endpoints
+│   ├── api-parsers.ts   validates every API response before the UI sees it
+│   ├── session.ts       the only place that touches the token cookie
+│   └── server-session.ts  guard for protected server pages
+├── context/             auth, UI (toasts and confirm), theme
 ├── design-system/       see above
-├── services/api.ts      single API layer; ApiError keeps HTTP status
 └── a11y.spec.tsx        axe suite
 ```
+
+## Technical decisions
+
+- **Layers:** UI components → hooks / domain rules → typed services → one HTTP client. Components never
+  read the token or call `fetch`.
+- **No blank screens:** responses are parsed as `unknown` and validated; malformed records are dropped,
+  unusable responses become a typed `ApiError` and route error boundaries catch the rest.
+- **Dates:** every date is shown and grouped in the business time zone with `Intl`, so server and browser
+  render the same text; past days are disabled and slots that already started disappear.
+- **Race conditions:** buttons lock while their request is pending, availability requests are aborted when a
+  newer one starts, and late responses are ignored.
+
+## Deployment
+
+1. Set the `NEXT_PUBLIC_*` variables above for the deployed backend URL.
+2. Allow the frontend origin in the backend CORS configuration; otherwise polling fails and the agenda shows
+   the "Connection lost" notice.
+3. Run the backend with the business time zone (for example `TZ=America/Mexico_City`): its clock uses the
+   host zone, and cloud hosts default to UTC.
+
+## Known limitations
+
+- **Session token in a JavaScript-readable cookie.** The backend returns the JWT in the response body, so the
+  client stores it with `js-cookie`. An XSS bug could read it; the production fix is an `HttpOnly`,
+  `Secure`, `SameSite` cookie issued by the backend.
+- **Past slots are guarded in the client only.** The backend hides started slots but does not reject booking
+  one; the UI re-checks the exact time before sending.
+- **Availability is not filtered by date on the server.** The agenda downloads the 14-day window and filters
+  locally.
 
 ## Troubleshooting
 
 - **Network error on login or agenda** — make sure the backend is running on port 3000.
 - **"Connection lost" notice** — polling failed; the UI keeps the last known data and retries automatically.
+  On a deployed frontend this usually means the backend CORS does not allow its origin.
 - **Odd session state** — clear the `turnovivo_token` cookie and sign in again.
