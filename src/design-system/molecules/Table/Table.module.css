@@ -66,4 +66,91 @@
   color: var(--text-secondary);
   text-align: center;
 }
+
+/* Shown only in the stacked layout; the column header still names the cell for screen readers. */
+.cellLabel {
+  display: none;
+}
+
+/* Phone: each row becomes a card; the row header is its title and label-less columns (actions) sit top-right. */
+@media (max-width: 40rem) {
+  .viewport {
+    overflow: visible;
+    border: 0;
+    background: var(--surface-transparent);
+  }
+
+  .table,
+  .body {
+    display: block;
+  }
+
+  .head {
+    position: absolute;
+    display: block;
+    inline-size: calc(var(--size-2) / 2);
+    block-size: calc(var(--size-2) / 2);
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--space-8) var(--space-12);
+    padding: var(--space-16);
+    border: thin solid var(--border-secondary);
+    border-radius: var(--radius-8);
+    background: var(--surface-primary);
+  }
+
+  .row + .row {
+    margin-block-start: var(--space-12);
+  }
+
+  .cell {
+    display: flex;
+    grid-column: 1 / -1;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-12);
+    block-size: auto;
+    min-inline-size: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  .cell[data-row-header] {
+    grid-column: 1;
+    grid-row: 1;
+    font-weight: var(--font-weight-semibold);
+  }
+
+  .cell[data-aside] {
+    grid-column: 2;
+    grid-row: 1;
+    justify-content: flex-end;
+  }
+
+  .cellLabel {
+    display: block;
+    flex: none;
+    color: var(--text-secondary);
+    font-size: var(--font-size-14);
+  }
+
+  .cellValue {
+    min-inline-size: 0;
+    text-align: end;
+    overflow-wrap: anywhere;
+  }
+
+  .empty {
+    display: block;
+    border: thin solid var(--border-secondary);
+    border-radius: var(--radius-8);
+  }
+}
 }

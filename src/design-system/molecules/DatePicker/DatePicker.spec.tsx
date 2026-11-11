@@ -47,6 +47,38 @@ describe('DatePicker', () => {
     await waitFor(() => expect(trigger).toHaveFocus());
   });
 
+  it('moves between days with the arrow keys and exposes aria-selected and aria-disabled', async () => {
+    const user = userEvent.setup();
+    const onChange = vi.fn();
+    renderPicker(
+      <DatePicker
+        defaultValue={parseDate('2026-11-13')}
+        minValue={parseDate('2026-11-10')}
+        isDateUnavailable={(date) => date.day === 14}
+        onChange={onChange}
+      />,
+    );
+    screen.getByRole('button', { name: /^Choose date/ }).focus();
+    await user.keyboard('{Enter}');
+
+    const cell = (day: number) => screen.getByRole('button', { name: new RegExp(`\\b${day} November 2026`) });
+    await waitFor(() => expect(cell(13)).toHaveFocus());
+    expect(cell(13).closest('[role="gridcell"]')).toHaveAttribute('aria-selected', 'true');
+    expect(cell(14)).toHaveAttribute('aria-disabled', 'true');
+    expect(cell(9)).toHaveAttribute('aria-disabled', 'true');
+
+    await user.keyboard('{ArrowRight}');
+    expect(cell(14)).toHaveFocus();
+    await user.keyboard('{ArrowDown}');
+    expect(cell(21)).toHaveFocus();
+    await user.keyboard('{ArrowLeft}');
+    expect(cell(20)).toHaveFocus();
+    await user.keyboard('{Enter}');
+
+    expect(onChange.mock.lastCall?.[0].toString()).toBe('2026-11-20');
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+  });
+
   it('updates individual date segments from the keyboard', async () => {
     const user = userEvent.setup();
     const onChange = vi.fn();

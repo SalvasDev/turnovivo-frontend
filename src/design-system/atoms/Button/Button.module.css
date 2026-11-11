@@ -27,7 +27,7 @@
     padding:
       calc(var(--button-padding-block) - var(--button-border-width))
       calc(var(--button-padding-inline) - var(--button-border-width));
-    border: var(--button-border-width) solid transparent;
+    border: var(--button-border-width) solid var(--surface-transparent);
     border-radius: var(--radius-radius-full);
     background: var(--surface-transparent);
     font-family: var(--font-family-inter), sans-serif;
@@ -54,8 +54,8 @@
   }
 
   .button[data-icon-only] {
-    --button-padding-block: 0rem;
-    --button-padding-inline: 0rem;
+    --button-padding-block: var(--space-0);
+    --button-padding-inline: var(--space-0);
     inline-size: var(--size-48);
     block-size: var(--size-48);
   }
@@ -84,6 +84,18 @@
     min-block-size: var(--size-32);
     font-size: var(--font-size-14);
     line-height: var(--line-height-16);
+  }
+
+  /* Compact buttons keep their look but get an invisible 44px touch target. */
+  .button[data-size='small']::after,
+  .button[data-icon-only][data-size='medium']::after {
+    content: '';
+    position: absolute;
+    inset-block-start: 50%;
+    inset-inline-start: 50%;
+    inline-size: max(100%, var(--size-touch-target));
+    block-size: max(100%, var(--size-touch-target));
+    translate: -50% -50%;
   }
 
   .button[data-color='red'] {
@@ -208,7 +220,7 @@
 
   /* Opacity, not visibility, so the label stays part of the accessible name. */
   .button[data-pending] .content {
-    opacity: 0;
+    opacity: var(--opacity-hidden);
   }
 
   .progress {

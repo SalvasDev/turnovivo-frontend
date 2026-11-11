@@ -12,7 +12,7 @@
   }
 
   .skeleton[data-variant='text'] {
-    block-size: 1em;
+    block-size: var(--size-1em);
     border-radius: var(--radius-2);
   }
 
@@ -25,13 +25,13 @@
 
   .skeleton[data-animated] {
     background-image: linear-gradient(
-      100deg,
+      var(--effects-shimmer-angle),
       var(--skeleton-base) 20%,
       var(--skeleton-highlight) 50%,
       var(--skeleton-base) 80%
     );
     background-size: 200% 100%;
-    animation: shimmer 1.6s var(--motion-easing-standard) infinite;
+    animation: shimmer var(--motion-duration-shimmer) var(--motion-easing-standard) infinite;
   }
 
   :global([data-theme='dark']) .skeleton {
@@ -61,7 +61,7 @@
     .skeleton {
       background: CanvasText;
       forced-color-adjust: none;
-      opacity: 0.2;
+      opacity: var(--opacity-faint);
     }
   }
 }

@@ -6,7 +6,12 @@
   --effects-shadow-5: 0px 12px 32px -16px rgba(0, 9, 50, 0.12), 0px 12px 60px 0px rgba(0, 0, 0, 0.15);
   --effects-shadow-6: 0px 16px 36px -20px rgba(0, 6, 46, 0.2), 0px 16px 64px 0px rgba(0, 0, 85, 0.02), 0px 12px 60px 0px rgba(0, 0, 0, 0.15);
   --motion-duration-fast: 150ms;
+  --motion-duration-shimmer: 1.6s;
   --motion-duration-spin: 800ms;
   --motion-duration-spin-reduced: 2400ms;
+  /* Near-zero rather than 0 so animationend/transitionend events still fire. */
+  --motion-duration-instant: 0.01ms;
   --motion-easing-standard: cubic-bezier(0.2, 0, 0, 1);
+  --effects-shimmer-angle: 100deg;
+  --effects-filter-invert: invert(1) hue-rotate(180deg);
 }

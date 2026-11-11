@@ -1,5 +1,5 @@
 :root {
-  --color-brand-primary: #0033D3;
+  --color-brand-primary: var(--blue-70);
   --color-alert-error-dark: var(--red-80);
   --color-alert-error-light: var(--red-20);
   --color-alert-success-dark: var(--green-80);

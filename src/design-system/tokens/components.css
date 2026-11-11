@@ -25,8 +25,8 @@
   --button-error-filled-surface-default: var(--red-70);
   --button-warning-text-surface-pressed: var(--gold-30);
   --button-warning-outline-surface-pressed: var(--gold-30);
-  --button-warning-outline-border-default: var(--gold-70);
-  --button-warning-filled-surface-pressed: var(--gold-90);
+  --button-warning-outline-border-default: var(--gold-80);  /* Form-field outline: WCAG 1.4.11 needs 3:1 against the page in both themes. */
+  --field-border-default: var(--neutral-60);  --button-warning-filled-surface-pressed: var(--gold-90);
   --button-warning-text-surface-hover: var(--gold-20);
   --button-warning-outline-surface-hover: var(--gold-20);
   --button-warning-filled-surface-hover: var(--gold-80);
@@ -60,6 +60,7 @@
 
 /* Pale light-theme hover surfaces would erase the lighter dark-theme labels. */
 [data-theme="dark"] {
+  --button-outline-border-default: var(--blue-40);
   --button-error-label: var(--red-50);
   --button-warning-label: var(--gold-50);
   --button-success-label: var(--green-50);

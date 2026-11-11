@@ -30,8 +30,7 @@ export function Avatar({
           key={src}
           src={src}
           alt=""
-          width={32}
-          height={32}
+          fill
           unoptimized
           className={styles.photo}
           onError={() => setFailedSrc(src)}

@@ -8,6 +8,7 @@
   --radius-20: 20px;
   --radius-40: 40px;
   --radius-radius-full: 999px;
+  --size-0: 0px;
   --size-1: 1px;
   --size-2: 2px;
   --size-4: 4px;
@@ -21,6 +22,9 @@
   --size-40: 40px;
   --size-48: 48px;
   --size-64: 64px;
+  /* Minimum touch target (WCAG 2.5.5, Apple HIG). */
+  --size-touch-target: 44px;
+  --space-0: 0px;
   --space-2: 2px;
   --space-4: 4px;
   --space-8: 8px;
@@ -39,4 +43,6 @@
   --space-120: 120px;
   --space-144: 144px;
   --space-160: 160px;
+  /* Relative to the current font size, e.g. text placeholders. */
+  --size-1em: 1em;
 }

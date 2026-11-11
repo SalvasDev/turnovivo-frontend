@@ -1,0 +1,29 @@
+:root {
+  /* @media can't read custom properties; stylelint restricts media queries to these values. */
+  --breakpoint-xs: 28rem;
+  --breakpoint-sm: 30rem;
+  --breakpoint-sm-plus: 32rem;
+  --breakpoint-md: 40rem;
+  --breakpoint-md-plus: 48rem;
+  --breakpoint-lg: 52rem;
+  --breakpoint-xl: 64rem;
+
+  --container-page: 80rem;
+  --container-hero-art: 60rem;
+  --container-prose: 50rem;
+  --container-lead: 43.2rem;
+  --container-auth-card: 25rem;
+
+  --z-index-behind: -1;
+  --z-index-header: 40;
+  --z-index-toast: 70;
+  --z-index-modal: 80;
+  --z-index-skip-link: 100;
+
+  --opacity-hidden: 0;
+  --opacity-faint: 0.2;
+  --opacity-subtle: 0.25;
+  --opacity-muted: 0.35;
+  --opacity-disabled: 0.5;
+  --opacity-visible: 1;
+}

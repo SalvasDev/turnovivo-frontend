@@ -53,21 +53,17 @@
   block-size: var(--size-40);
   min-inline-size: 0;
   padding-inline: var(--space-12) var(--space-4);
-  border: thin solid var(--border-secondary);
+  border: thin solid var(--field-border-default);
   border-radius: var(--radius-12);
   background: var(--surface-primary);
 }
 
 .control[data-filled] {
-  border-color: var(--border-primary);
+  border-color: var(--field-border-default);
 }
 
 :global([data-theme='dark']) .control {
-  border-color: var(--border-primary);
-}
-
-:global([data-theme='dark']) .picker .clearButton {
-  --button-border: var(--border-primary);
+  border-color: var(--field-border-default);
 }
 
 .picker:not([data-disabled], [data-invalid]) .control[data-hovered] {
@@ -88,7 +84,7 @@
   outline: none;
   text-align: center;
   white-space: pre;
-  caret-color: transparent;
+  caret-color: var(--surface-transparent);
 }
 
 .segment[data-placeholder] {
@@ -114,7 +110,7 @@
 }
 
 .picker .clearButton {
-  --button-border: var(--border-primary);
+  --button-border: var(--field-border-default);
   --button-tone: var(--text-primary);
   --button-tint-hover: var(--surface-hover);
   --button-tint-pressed: var(--surface-pressed);
@@ -131,8 +127,15 @@
   line-height: var(--line-height-20);
 }
 
+/* Matches the 40px field visually while keeping a 44px touch target. */
+.picker .clearButton::after {
+  content: '';
+  position: absolute;
+  inset: calc((var(--size-40) - var(--size-touch-target)) / 2 - var(--button-border-width)) 0;
+}
+
 .picker[data-state='resting'] .control {
-  border-color: var(--border-primary);
+  border-color: var(--field-border-default);
 }
 
 .picker[data-state='active'] .control,
@@ -191,7 +194,7 @@
 }
 
 .calendar {
-  inline-size: calc(var(--size-40) * 7);
+  inline-size: calc(var(--size-touch-target) * 7);
   max-inline-size: 100%;
 }
 
@@ -227,15 +230,19 @@
   text-align: center;
 }
 
+/* 44px touch target; padding + content-box clipping keep the 32px visual day. */
 .day {
+  --day-inset: calc((var(--size-touch-target) - var(--size-32)) / 2);
+  position: relative;
   display: grid;
   place-items: center;
   box-sizing: border-box;
-  inline-size: var(--size-32);
-  block-size: var(--size-32);
+  inline-size: min(var(--size-touch-target), 100%);
+  aspect-ratio: 1;
   margin-inline: auto;
-  padding: 0;
+  padding: var(--day-inset);
   border-radius: var(--radius-4);
+  background-clip: content-box;
   outline: none;
   color: var(--text-primary);
   font-variant-numeric: tabular-nums;
@@ -243,17 +250,31 @@
 }
 
 .day[data-hovered] {
-  background: var(--surface-hover);
+  background-color: var(--surface-hover);
 }
 
 .day[data-today] {
   border-radius: var(--radius-radius-full);
-  box-shadow: inset 0 0 0 calc(var(--size-2) / 2) var(--border-brand);
+}
+
+/* A real border on the 32px circle renders crisp, unlike a 1px spread shadow over a masked inset. */
+.day[data-today]::after {
+  content: '';
+  position: absolute;
+  inset: var(--day-inset);
+  border: var(--size-2) solid var(--border-brand);
+  border-radius: var(--radius-radius-full);
+  pointer-events: none;
+}
+
+.day[data-today][data-selected]::after {
+  inset: calc(var(--day-inset) + var(--size-2));
+  border-color: var(--text-on-solid);
 }
 
 .day[data-selected] {
   border-radius: var(--radius-radius-full);
-  background: var(--color-brand-primary);
+  background-color: var(--color-brand-primary);
   color: var(--text-on-solid);
 }
 
@@ -264,7 +285,7 @@
 
 .day[data-disabled],
 .day[data-unavailable] {
-  background: var(--surface-transparent);
+  background-color: var(--surface-transparent);
   color: var(--text-disabled);
   cursor: not-allowed;
 }
@@ -280,10 +301,16 @@
   font-weight: var(--font-weight-semibold);
 }
 
-.day[data-availability='waitlist'],
 .legendMarker[data-availability='waitlist'] {
   border: calc(var(--size-2) * 0.75) dashed var(--icon-warning);
   border-radius: var(--radius-radius-full);
+}
+
+/* Drawn inside the touch target so the ring matches the 32px day. */
+.day[data-availability='waitlist'] {
+  border-radius: var(--radius-radius-full);
+  outline: calc(var(--size-2) * 0.75) dashed var(--icon-warning);
+  outline-offset: calc(-1 * var(--day-inset));
 }
 
 .day[data-availability='blocked'],
@@ -301,11 +328,12 @@
 .day[data-availability='past'],
 .legendMarker[data-availability='past'] {
   color: var(--icon-disabled);
-  background: var(--surface-secondary);
+  background-color: var(--surface-secondary);
 }
 
 .day[data-selected][data-availability] {
   border-color: currentColor;
+  outline-color: currentColor;
   color: var(--text-on-solid);
 }
 
@@ -345,9 +373,8 @@
     outline-color: Highlight;
   }
 
-  .day[data-today] {
-    outline: thin solid CanvasText;
-    outline-offset: calc(-1 * var(--space-2));
+  .day[data-today]::after {
+    border-color: CanvasText;
   }
 
   .day[data-selected] {

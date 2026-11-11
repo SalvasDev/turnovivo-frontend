@@ -32,7 +32,7 @@
   }
 
   .track {
-    opacity: 0.25;
+    opacity: var(--opacity-subtle);
   }
 
   .arc {

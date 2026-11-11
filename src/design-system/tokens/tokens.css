@@ -3,6 +3,7 @@
 @import './typography.css';
 @import './dimensions.css';
 @import './effects.css';
+@import './layout.css';
 @import './semantic-light.css';
 @import './semantic-dark.css';
 @import './components.css';

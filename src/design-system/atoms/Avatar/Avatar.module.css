@@ -2,6 +2,7 @@
 
 @layer ds.atoms {
 .avatar {
+  position: relative;
   display: inline-grid;
   place-items: center;
   flex: none;
