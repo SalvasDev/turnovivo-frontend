@@ -1,7 +1,11 @@
+@layer reset, ds.atoms, ds.molecules, ds.layouts;
+
+@layer ds.atoms {
 .icon {
   display: block;
   flex: none;
   inline-size: var(--size-20);
   block-size: var(--size-20);
   color: inherit;
+}
 }

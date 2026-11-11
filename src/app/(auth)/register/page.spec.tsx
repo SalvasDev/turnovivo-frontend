@@ -26,6 +26,35 @@ describe('RegisterPage', () => {
     expect(screen.getByRole('link', { name: 'Sign in' })).toHaveAttribute('href', '/login');
   });
 
+  it('shows email and password errors when leaving invalid fields', async () => {
+    const user = userEvent.setup();
+    render(<RegisterPage />);
+
+    const email = screen.getByRole('textbox', { name: 'Email' });
+    await user.type(email, 'not-an-email');
+    await user.tab();
+    expect(await screen.findByText('Enter a valid email address.')).toBeInTheDocument();
+    expect(email).toHaveAttribute('aria-invalid', 'true');
+
+    const password = screen.getByLabelText(/^Password/);
+    await user.click(password);
+    await user.tab();
+    expect(await screen.findByText('Enter a password.')).toBeInTheDocument();
+    expect(password).toHaveAttribute('aria-invalid', 'true');
+    expect(apiService.registerCustomer).not.toHaveBeenCalled();
+  });
+
+  it('shows inline required errors when submitting empty fields', async () => {
+    const user = userEvent.setup();
+    render(<RegisterPage />);
+
+    await user.click(screen.getByRole('button', { name: 'Create account' }));
+
+    expect(await screen.findByText('Enter your email address.')).toBeInTheDocument();
+    expect(screen.getByText('Enter a password.')).toBeInTheDocument();
+    expect(apiService.registerCustomer).not.toHaveBeenCalled();
+  });
+
   it.each(['short1', 'password'])('does not send the invalid password %s', async (password) => {
     const user = userEvent.setup();
     render(<RegisterPage />);
@@ -34,7 +63,9 @@ describe('RegisterPage', () => {
     fireEvent.submit(screen.getByRole('form'));
 
     expect(apiService.registerCustomer).not.toHaveBeenCalled();
-    expect(screen.getByRole('alert')).toHaveTextContent('Use at least 8 characters, including one number.');
+    expect(await screen.findByText('Use at least 8 characters, including one number.')).toBeInTheDocument();
+    expect(screen.getByLabelText(/^Password/)).toHaveAttribute('aria-invalid', 'true');
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 
   it('blocks duplicate submissions and allows retry after an API error', async () => {
@@ -59,8 +90,10 @@ describe('RegisterPage', () => {
     expect(apiService.registerCustomer).toHaveBeenCalledWith('test@example.com', 'password123');
 
     await act(async () => { rejectRegistration(new Error('Email already registered')); });
-    expect(screen.getByRole('alert')).toHaveTextContent('Email already registered');
+    expect(await screen.findByText('Email already registered', { selector: '[slot="errorMessage"]' })).toBeInTheDocument();
     expect(email).toHaveAttribute('aria-invalid', 'true');
+    expect(email).toHaveAccessibleDescription('Email already registered');
+    expect(screen.getByRole('alert')).toHaveTextContent('Email already registered');
     expect(screen.getByRole('button', { name: 'Create account' })).toBeEnabled();
   });
 

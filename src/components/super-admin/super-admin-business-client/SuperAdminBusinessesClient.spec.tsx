@@ -22,7 +22,7 @@ function mutations() {
 }
 
 function renderDashboard(businesses = currentBusinesses, admins = currentAdmins) {
-  return render(<UIProvider><SuperAdminBusinessesClient token="super-admin-token" userEmail="super@turnovivo.com" initialBusinesses={businesses} initialAdmins={admins} /></UIProvider>);
+  return render(<UIProvider><SuperAdminBusinessesClient token="super-admin-token" initialBusinesses={businesses} initialAdmins={admins} /></UIProvider>);
 }
 
 async function openCompany(user: ReturnType<typeof userEvent.setup>) {
@@ -118,6 +118,8 @@ describe('SuperAdminBusinessesClient', () => {
     await user.type(screen.getByLabelText(/^Password/), 'password');
     await user.click(screen.getByRole('button', { name: 'Create admin' }));
     expect(await screen.findByText('Use at least 8 characters, including one number.')).toBeInTheDocument();
+    expect(screen.getByLabelText(/^Password/)).toHaveAttribute('aria-invalid', 'true');
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
     expect(mutations()).toHaveLength(0);
   });
 
@@ -148,8 +150,15 @@ describe('SuperAdminBusinessesClient', () => {
     await user.type(screen.getByLabelText(/^Email/), 'new@company.com');
     await user.type(screen.getByLabelText(/^Password/), 'Secure123');
     await user.click(screen.getByRole('button', { name: 'Create admin' }));
-    expect(await screen.findByRole('alert')).toHaveTextContent('Email already exists');
-    expect(screen.getByLabelText(/^Email/)).toHaveValue('new@company.com');
+    const email = screen.getByLabelText(/^Email/);
+    expect(await screen.findByText('Email already exists')).toBeInTheDocument();
+    expect(email).toHaveValue('new@company.com');
+    expect(email).toHaveAttribute('aria-invalid', 'true');
+    expect(email).toHaveAccessibleDescription('Email already exists');
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    await user.clear(email);
+    await user.type(email, 'another@company.com');
+    expect(email).not.toHaveAttribute('aria-invalid', 'true');
     await user.click(screen.getByRole('button', { name: 'Create admin' }));
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     expect(mutations()).toHaveLength(2);
@@ -183,7 +192,9 @@ describe('SuperAdminBusinessesClient', () => {
     await user.type(screen.getByLabelText(/^SLUG URL/), '!');
     await chooseOwner(user);
     await user.click(screen.getByRole('button', { name: 'Create company' }));
-    expect(await screen.findByRole('alert')).toHaveTextContent('Use lowercase letters, numbers and hyphens');
+    expect(await screen.findByText('Use lowercase letters, numbers and hyphens for the slug.')).toBeInTheDocument();
+    expect(screen.getByLabelText(/^SLUG URL/)).toHaveAttribute('aria-invalid', 'true');
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
     expect(mutations()).toHaveLength(0);
   });
 
@@ -225,7 +236,7 @@ describe('SuperAdminBusinessesClient', () => {
     const user = userEvent.setup();
     renderDashboard();
     await openAction(user, 'Deactivate company');
-    await user.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Volver' }));
+    await user.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Go back' }));
     await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
     expect(mutations()).toHaveLength(0);
     expect(screen.getByRole('button', { name: 'Add company' })).toBeEnabled();
@@ -236,7 +247,7 @@ describe('SuperAdminBusinessesClient', () => {
     renderDashboard();
     await openAction(user, 'Deactivate company');
     expect(mutations()).toHaveLength(0);
-    await user.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Sí, desactivar' }));
+    await user.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Yes, deactivate' }));
     expect(await screen.findByText('Inactive')).toBeInTheDocument();
     expect(mutations()[0][1]?.method).toBe('DELETE');
     expect(String(mutations()[0][0])).toMatch(/\/businesses\/company-1$/);
@@ -247,7 +258,7 @@ describe('SuperAdminBusinessesClient', () => {
     currentBusinesses = [{ ...business, active: false }];
     renderDashboard();
     await openAction(user, 'Reactivate company');
-    await user.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Sí, reactivar' }));
+    await user.click(within(screen.getByRole('alertdialog')).getByRole('button', { name: 'Yes, reactivate' }));
     expect(await screen.findByText('Active')).toBeInTheDocument();
     expect(mutations()[0][1]?.method).toBe('PUT');
     expect(JSON.parse(String(mutations()[0][1]?.body))).toEqual({ name: business.name, slug: business.slug, ownerId: business.ownerId, active: true });

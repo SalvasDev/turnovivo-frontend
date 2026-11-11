@@ -1,10 +1,21 @@
 import { AppointmentSlot, Business } from '@/types';
+import Cookies from 'js-cookie';
+import {
+  parseAccessToken,
+  parseBookResponse,
+  parseBusiness,
+  parseMessage,
+  parseSlots,
+  parseUser,
+  readJsonBody,
+} from './api-parsers';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
+const TOKEN_COOKIE = 'turnovivo_token';
+let redirectingAfterExpiry = false;
 
-interface ApiErrorPayload {
-  message?: string | string[];
-}
+export const NETWORK_ERROR_MESSAGE = 'Unable to reach the service. Check your connection and try again.';
+export const INVALID_RESPONSE_MESSAGE = 'The service returned an unexpected response. Please try again.';
 
 type ExtendedRequestInit = RequestInit & {
   next?: {
@@ -12,24 +23,60 @@ type ExtendedRequestInit = RequestInit & {
   };
 };
 
-function buildMessage(payload: ApiErrorPayload | null, fallback: string): string {
-  if (!payload?.message) {
-    return fallback;
+/** HTTP error that keeps the status so callers can tell "not found" apart from outages. */
+export class ApiError extends Error {
+  constructor(message: string, readonly status: number) {
+    super(message);
+    this.name = 'ApiError';
   }
-  return Array.isArray(payload.message) ? payload.message.join(', ') : payload.message;
 }
 
-async function request<T>(path: string, init?: ExtendedRequestInit, fallbackError = 'Error en la petición.'): Promise<T> {
-  const response = await fetch(`${API_URL}${path}`, init);
+export function createSessionExpiredLoginUrl(pathname: string, search = '', hash = '') {
+  const returnPath = `${pathname}${search}${hash}`;
+  const safePath = returnPath.startsWith('/') && !returnPath.startsWith('//') && !returnPath.startsWith('/\\')
+    ? returnPath
+    : '/';
+  return `/login?sessionExpired=1&next=${encodeURIComponent(safePath)}`;
+}
 
-  const isJson = response.headers.get('content-type')?.includes('application/json');
-  const payload = (isJson ? await response.json() : null) as T | ApiErrorPayload | null;
+export function redirectToLoginAfterSessionExpiry() {
+  if (typeof window === 'undefined') return;
+  Cookies.remove(TOKEN_COOKIE);
+  if (window.location.pathname === '/login' || redirectingAfterExpiry) return;
+  redirectingAfterExpiry = true;
+  window.location.replace(createSessionExpiredLoginUrl(
+    window.location.pathname,
+    window.location.search,
+    window.location.hash,
+  ));
+}
 
-  if (!response.ok) {
-    throw new Error(buildMessage(payload as ApiErrorPayload | null, fallbackError));
+/** Sends a request and returns the raw JSON body; transport and HTTP failures become ApiError. */
+export async function fetchApi(path: string, init?: RequestInit, fallbackError = 'The request failed.'): Promise<unknown> {
+  let response: Response;
+  try {
+    response = await fetch(`${API_URL}${path}`, init);
+  } catch {
+    throw new ApiError(NETWORK_ERROR_MESSAGE, 0);
   }
 
-  return payload as T;
+  const payload = await readJsonBody(response);
+
+  if (!response.ok) {
+    const hasAuthorization = new Headers(init?.headers).has('Authorization');
+    if (response.status === 401 && hasAuthorization && path !== '/auth/logout') {
+      redirectToLoginAfterSessionExpiry();
+    }
+    throw new ApiError(parseMessage(payload).message ?? fallbackError, response.status);
+  }
+
+  return payload;
+}
+
+/** Rejects a response whose shape the UI can't render. */
+export function requireValid<T>(value: T | null): T {
+  if (value === null) throw new ApiError(INVALID_RESPONSE_MESSAGE, 502);
+  return value;
 }
 
 function withAuth(token: string, init?: ExtendedRequestInit): ExtendedRequestInit {
@@ -57,47 +104,47 @@ export interface BookResponse extends ApiMessage {
 
 export const apiService = {
   async login(email: string, passwordHash: string): Promise<LoginResponse> {
-    return request<LoginResponse>(
+    const payload = await fetchApi(
       '/auth/login',
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, passwordHash }),
       },
-      'Error al iniciar sesión.',
+      'Unable to sign in. Please try again.',
     );
+    return requireValid(parseAccessToken(payload));
   },
 
   async logout(token: string): Promise<ApiMessage> {
-    return request<ApiMessage>(
+    const payload = await fetchApi(
       '/auth/logout',
-      withAuth(token, {
-        method: 'POST',
-      }),
-      'No se pudo cerrar la sesión en el servidor.',
+      withAuth(token, { method: 'POST' }),
+      'Unable to end the session on the server.',
     );
+    return parseMessage(payload);
   },
 
   async registerCustomer(email: string, passwordHash: string): Promise<{ id: string; email: string; role: string }> {
-    return request<{ id: string; email: string; role: string }>(
+    const payload = await fetchApi(
       '/users',
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, passwordHash, role: 'CUSTOMER' }),
       },
-      'Error al procesar el registro.',
+      'Unable to create your account. Please try again.',
     );
+    return parseUser(payload);
   },
 
   async getBusinessBySlug(slug: string): Promise<Business> {
-    return request<Business>(
-      `/businesses/${slug}`,
-      {
-        next: { revalidate: 60 },
-      },
-      'Error al cargar el negocio.',
+    const payload = await fetchApi(
+      `/businesses/${encodeURIComponent(slug)}`,
+      { next: { revalidate: 60 } },
+      'Unable to load the business.',
     );
+    return requireValid(parseBusiness(payload));
   },
 
   async getAvailableSlots(businessId: string, token?: string): Promise<AppointmentSlot[]> {
@@ -105,75 +152,76 @@ export const apiService = {
       ? withAuth(token, { cache: 'no-store' })
       : ({ cache: 'no-store' } as ExtendedRequestInit);
 
-    return request<AppointmentSlot[]>(
-      `/appointments/business/${businessId}/available`,
+    const payload = await fetchApi(
+      `/appointments/business/${encodeURIComponent(businessId)}/available`,
       init,
-      'Error al cargar la agenda de turnos disponibles.',
+      'Unable to load the available appointments.',
     );
+    return requireValid(parseSlots(payload));
   },
 
   async bookAppointment(slotId: string, token: string): Promise<BookResponse> {
-    return request<BookResponse>(
+    const payload = await fetchApi(
       '/appointments/book',
       withAuth(token, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ slotId }),
       }),
-      'Hubo un problema en la transaccion.',
+      'Unable to book this appointment.',
     );
+    return parseBookResponse(payload);
   },
 
   async joinWaitlist(slotId: string, token: string): Promise<ApiMessage> {
-    return request<ApiMessage>(
+    const payload = await fetchApi(
       '/appointments/waitlist/join',
       withAuth(token, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ slotId }),
       }),
-      'Hubo un problema en la transaccion.',
+      'Unable to join the waitlist.',
     );
+    return parseMessage(payload);
   },
 
   async cancelAppointment(appointmentId: string, token: string): Promise<ApiMessage> {
-    return request<ApiMessage>(
-      `/appointments/${appointmentId}/cancel`,
+    const payload = await fetchApi(
+      `/appointments/${encodeURIComponent(appointmentId)}/cancel`,
       withAuth(token, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
       }),
-      'Error al cancelar.',
+      'Unable to cancel the appointment.',
     );
+    return parseMessage(payload);
   },
 
   async leaveWaitlist(slotId: string, token: string): Promise<ApiMessage> {
-    return request<ApiMessage>(
-      `/appointments/slots/${slotId}/leave-waitlist`,
-      withAuth(token, {
-        method: 'POST',
-      }),
-      'Error al salir de la lista.',
+    const payload = await fetchApi(
+      `/appointments/slots/${encodeURIComponent(slotId)}/leave-waitlist`,
+      withAuth(token, { method: 'POST' }),
+      'Unable to leave the waitlist.',
     );
+    return parseMessage(payload);
   },
 
   async confirmHold(slotId: string, token: string): Promise<ApiMessage> {
-    return request<ApiMessage>(
-      `/appointments/slots/${slotId}/confirm-hold`,
-      withAuth(token, {
-        method: 'POST',
-      }),
-      'No se pudo reclamar el turno.',
+    const payload = await fetchApi(
+      `/appointments/slots/${encodeURIComponent(slotId)}/confirm-hold`,
+      withAuth(token, { method: 'POST' }),
+      'Unable to claim this appointment.',
     );
+    return parseMessage(payload);
   },
 
   async declineHold(slotId: string, token: string): Promise<ApiMessage> {
-    return request<ApiMessage>(
-      `/appointments/slots/${slotId}/decline-hold`,
-      withAuth(token, {
-        method: 'POST',
-      }),
-      'No se pudo rechazar el turno.',
+    const payload = await fetchApi(
+      `/appointments/slots/${encodeURIComponent(slotId)}/decline-hold`,
+      withAuth(token, { method: 'POST' }),
+      'Unable to decline this appointment.',
     );
+    return parseMessage(payload);
   },
 };

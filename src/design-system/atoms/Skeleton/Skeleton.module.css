@@ -1,0 +1,67 @@
+@layer reset, ds.atoms, ds.molecules, ds.layouts;
+
+@layer ds.atoms {
+  .skeleton {
+    display: block;
+    inline-size: 100%;
+    block-size: var(--size-40);
+    border-radius: var(--radius-4);
+    --skeleton-base: var(--surface-secondary);
+    --skeleton-highlight: var(--surface-tertiary);
+    background: var(--skeleton-base);
+  }
+
+  .skeleton[data-variant='text'] {
+    block-size: 1em;
+    border-radius: var(--radius-2);
+  }
+
+  .skeleton[data-variant='circular'] {
+    inline-size: var(--size-40);
+    block-size: auto;
+    aspect-ratio: 1;
+    border-radius: var(--radius-radius-full);
+  }
+
+  .skeleton[data-animated] {
+    background-image: linear-gradient(
+      100deg,
+      var(--skeleton-base) 20%,
+      var(--skeleton-highlight) 50%,
+      var(--skeleton-base) 80%
+    );
+    background-size: 200% 100%;
+    animation: shimmer 1.6s var(--motion-easing-standard) infinite;
+  }
+
+  :global([data-theme='dark']) .skeleton {
+    --skeleton-base: var(--surface-secondary);
+    --skeleton-highlight: var(--surface-tertiary);
+  }
+
+  @keyframes shimmer {
+    from {
+      background-position: 100% 0;
+    }
+
+    to {
+      background-position: -100% 0;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .skeleton[data-animated] {
+      animation: none;
+      background-image: none;
+      background-color: var(--skeleton-base);
+    }
+  }
+
+  @media (forced-colors: active) {
+    .skeleton {
+      background: CanvasText;
+      forced-color-adjust: none;
+      opacity: 0.2;
+    }
+  }
+}

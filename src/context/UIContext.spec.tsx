@@ -36,7 +36,7 @@ function Harness() {
       </button>
       <button
         onClick={() => {
-          stopRef.current = ui.loading('Guardando cambios');
+          stopRef.current = ui.loading('Saving changes...');
         }}
       >
         start-loading
@@ -82,7 +82,7 @@ describe('UIContext', () => {
     );
 
     fireEvent.click(screen.getByRole('button', { name: 'open-confirm' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Confirmar' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm' }));
 
     await waitFor(() => {
       expect(screen.getByTestId('confirm-state')).toHaveTextContent('yes');
@@ -96,7 +96,7 @@ describe('UIContext', () => {
     await user.click(trigger);
     expect(screen.getByRole('alertdialog')).toBeInTheDocument();
     if (method === 'cancel') {
-      await user.click(screen.getByRole('button', { name: 'Cancelar' }));
+      await user.click(screen.getByRole('button', { name: 'Cancel' }));
     } else {
       await user.keyboard('{Escape}');
     }
@@ -135,12 +135,12 @@ describe('UIContext', () => {
     render(<UIProvider><Harness /></UIProvider>);
     await user.click(screen.getByRole('button', { name: 'toast-success' }));
     await user.click(screen.getByRole('button', { name: 'toast-error' }));
-    const region = screen.getByRole('region', { name: 'Notificaciones' });
+    const region = screen.getByRole('region', { name: 'Notifications' });
     expect(region).not.toHaveAttribute('aria-live');
     expect(screen.getByRole('status')).toHaveAttribute('data-variant', 'success');
     const error = screen.getByRole('alert');
     expect(error).toHaveAttribute('data-variant', 'error');
-    await user.click(within(error).getByRole('button', { name: 'Cerrar notificacion' }));
+    await user.click(within(error).getByRole('button', { name: 'Dismiss notification' }));
     expect(screen.queryByText('Operacion fallida')).not.toBeInTheDocument();
     expect(screen.getByText('Operacion exitosa')).toBeInTheDocument();
   });
@@ -149,8 +149,8 @@ describe('UIContext', () => {
     const user = userEvent.setup();
     render(<UIProvider><Harness /></UIProvider>);
     await user.click(screen.getByRole('button', { name: 'start-loading' }));
-    await user.click(screen.getByRole('button', { name: 'Cerrar notificacion' }));
-    expect(screen.queryByText('Procesando: Guardando cambios')).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Dismiss notification' }));
+    expect(screen.queryByText('Saving changes...')).not.toBeInTheDocument();
     await user.click(screen.getByRole('button', { name: 'stop-loading' }));
     expect(screen.queryByRole('status')).not.toBeInTheDocument();
   });
@@ -165,14 +165,14 @@ describe('UIContext', () => {
     );
 
     fireEvent.click(screen.getByRole('button', { name: 'start-loading' }));
-    expect(screen.getByText('Procesando: Guardando cambios')).toBeInTheDocument();
+    expect(screen.getByText('Saving changes...')).toBeInTheDocument();
 
     act(() => {
       vi.advanceTimersByTime(10_000);
     });
-    expect(screen.getByText('Procesando: Guardando cambios')).toBeInTheDocument();
+    expect(screen.getByText('Saving changes...')).toBeInTheDocument();
 
     fireEvent.click(screen.getByRole('button', { name: 'stop-loading' }));
-    expect(screen.queryByText('Procesando: Guardando cambios')).not.toBeInTheDocument();
+    expect(screen.queryByText('Saving changes...')).not.toBeInTheDocument();
   });
 });

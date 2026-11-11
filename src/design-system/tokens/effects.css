@@ -5,4 +5,8 @@
   --effects-shadow-4: 0px 12px 32px -16px rgba(0, 0, 51, 0.06), 0px 8px 40px 0px rgba(0, 0, 0, 0.05);
   --effects-shadow-5: 0px 12px 32px -16px rgba(0, 9, 50, 0.12), 0px 12px 60px 0px rgba(0, 0, 0, 0.15);
   --effects-shadow-6: 0px 16px 36px -20px rgba(0, 6, 46, 0.2), 0px 16px 64px 0px rgba(0, 0, 85, 0.02), 0px 12px 60px 0px rgba(0, 0, 0, 0.15);
+  --motion-duration-fast: 150ms;
+  --motion-duration-spin: 800ms;
+  --motion-duration-spin-reduced: 2400ms;
+  --motion-easing-standard: cubic-bezier(0.2, 0, 0, 1);
 }

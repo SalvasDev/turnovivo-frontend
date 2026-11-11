@@ -19,7 +19,7 @@ function renderSlot(overrides: Partial<ComponentProps<typeof SlotCard>> = {}) {
     onSlotAction: vi.fn(), onCancelAppointment: vi.fn(), onLeaveWaitlist: vi.fn(),
     ...overrides,
   };
-  render(<SlotCard {...props} />);
+  render(<ul><SlotCard {...props} /></ul>);
   return props;
 }
 
@@ -27,7 +27,7 @@ describe('SlotCard using the design system Card', () => {
   it('renders the DS badge, heading and booking action', async () => {
     const user = userEvent.setup();
     const props = renderSlot();
-    expect(screen.getByRole('listitem', { name: /available/ })).toBeInTheDocument();
+    expect(screen.getByRole('article', { name: /available/ })).toBeInTheDocument();
     expect(screen.getByRole('heading', { name: '10:00 a.m.' })).toBeInTheDocument();
     expect(screen.getByText('Available').parentElement).toHaveAttribute('data-color', 'success');
     const button = screen.getByRole('button', { name: 'Reserve' });
@@ -104,7 +104,7 @@ describe('SlotCard using the design system Card', () => {
   it('announces pending work and prevents duplicate actions', async () => {
     const user = userEvent.setup();
     const props = renderSlot({ loadingSlotId: 'slot-1' });
-    expect(screen.getByRole('listitem')).toHaveAttribute('aria-busy', 'true');
+    expect(screen.getByRole('article')).toHaveAttribute('aria-busy', 'true');
     const button = screen.getByRole('button', { name: 'Booking...' });
     expect(button).toBeDisabled();
     await user.click(button);
@@ -114,6 +114,6 @@ describe('SlotCard using the design system Card', () => {
   it('disables other slots while an action is pending', () => {
     renderSlot({ loadingSlotId: 'another-slot' });
     expect(screen.getByRole('button', { name: 'Reserve' })).toBeDisabled();
-    expect(screen.getByRole('listitem')).not.toHaveAttribute('aria-busy', 'true');
+    expect(screen.getByRole('article')).not.toHaveAttribute('aria-busy', 'true');
   });
 });

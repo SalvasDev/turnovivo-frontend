@@ -3,7 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import AppointmentGrid from './AppointmentGrid';
 import { AppointmentSlot } from '@/types';
-import { apiService } from '@/services/api';
+import { ApiError, apiService } from '@/services/api';
 
 const mockedCookiesGet = vi.fn();
 const mockedUI = {
@@ -25,18 +25,69 @@ vi.mock('@/context/UIContext', () => ({
   useUI: () => mockedUI,
 }));
 
-vi.mock('@/services/api', () => ({
-  apiService: {
-    getAvailableSlots: vi.fn(),
-    bookAppointment: vi.fn(),
-    cancelAppointment: vi.fn(),
-  },
-}));
+vi.mock('@/services/api', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/services/api')>();
+  return {
+    ...actual,
+    apiService: {
+      getAvailableSlots: vi.fn(),
+      bookAppointment: vi.fn(),
+      cancelAppointment: vi.fn(),
+    },
+  };
+});
+
+// Fixture dates are in November 2026; pin "today" so they never become past dates.
+vi.mock('@internationalized/date', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@internationalized/date')>();
+  return { ...actual, today: () => actual.parseDate('2026-11-12') };
+});
 
 describe('AppointmentGrid', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(apiService.getAvailableSlots).mockReturnValue(new Promise(() => {}));
+  });
+
+  it('marks each calendar day with its availability before the user selects it', async () => {
+    const user = userEvent.setup();
+    const base = { businessId: 'biz-1', staffId: 'staff-1', waitlistEntries: [], slotBlocks: [] };
+    const slots: AppointmentSlot[] = [
+      { ...base, id: 'open', status: 'AVAILABLE', startTime: '2026-11-13T10:00:00Z', endTime: '2026-11-13T10:30:00Z', appointment: null },
+      { ...base, id: 'full', status: 'RESERVED', startTime: '2026-11-14T10:00:00Z', endTime: '2026-11-14T10:30:00Z', appointment: { id: 'a-2', customerId: 'other' } },
+      { ...base, id: 'blocked', status: 'AVAILABLE', startTime: '2026-11-15T10:00:00Z', endTime: '2026-11-15T10:30:00Z', appointment: null, slotBlocks: [{ customerId: 'customer-1', reason: 'CANCELLED' }] },
+      { ...base, id: 'past', status: 'AVAILABLE', startTime: '2026-11-10T10:00:00Z', endTime: '2026-11-10T10:30:00Z', appointment: null },
+    ];
+    render(<AppointmentGrid initialSlots={slots} businessId="biz-1" serverUserId="customer-1" />);
+
+    await user.click(screen.getByRole('button', { name: /choose date/i }));
+    const day = (n: number) => screen.getByRole('button', { name: new RegExp(`\\b${n} November 2026`) });
+
+    expect(day(13)).toHaveAttribute('data-availability', 'available');
+    expect(day(13)).toHaveAccessibleDescription('Available');
+    expect(day(14)).toHaveAttribute('data-availability', 'waitlist');
+    expect(day(14)).toHaveAccessibleDescription('Full, waitlist only');
+    expect(day(14)).not.toHaveAttribute('aria-disabled');
+    expect(day(15)).toHaveAttribute('data-availability', 'blocked');
+    expect(day(15)).toHaveAttribute('aria-disabled', 'true');
+    expect(day(16)).toHaveAttribute('data-availability', 'none');
+    expect(day(16)).toHaveAccessibleDescription('No appointments');
+    expect(day(16)).toHaveAttribute('aria-disabled', 'true');
+    expect(day(10)).toHaveAttribute('data-availability', 'past');
+    expect(day(10)).toHaveAttribute('aria-disabled', 'true');
+    expect(screen.getByRole('list', { name: 'Legend' })).toBeInTheDocument();
+
+    await user.click(day(16));
+    expect(screen.getAllByRole('article', { hidden: true })).toHaveLength(4);
+  });
+
+  it('shows simple slot skeletons while the initial availability request is pending', () => {
+    render(<AppointmentGrid initialSlots={[]} businessId="biz-1" serverUserId="customer-1" />);
+
+    expect(screen.getByRole('status', { name: 'Loading appointment slots' })).toHaveAttribute('aria-busy', 'true');
+    expect(screen.getAllByRole('status', { name: 'Loading appointment slots' })[0].querySelectorAll('[data-variant="rectangular"]')).toHaveLength(4);
+    expect(screen.queryByRole('progressbar')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /choose date/i })).toBeInTheDocument();
   });
 
   it('muestra warning y no reserva si ya tengo una reserva activa', async () => {
@@ -74,7 +125,7 @@ describe('AppointmentGrid', () => {
     await userEvent.click(screen.getByRole('button', { name: 'Reserve' }));
 
     expect(mockedUI.warning).toHaveBeenCalledWith(
-      'Politica de la empresa: solo puedes tener una reserva activa a la vez.',
+      'You can only have one active booking at a time.',
     );
     expect(apiService.bookAppointment).not.toHaveBeenCalled();
     expect(apiService.getAvailableSlots).toHaveBeenCalledWith('biz-1');
@@ -101,7 +152,7 @@ describe('AppointmentGrid', () => {
 
     await userEvent.click(screen.getByRole('button', { name: 'Reserve' }));
 
-    expect(mockedUI.info).toHaveBeenCalledWith('Debes iniciar sesion para realizar esta accion.');
+    expect(mockedUI.info).toHaveBeenCalledWith('Sign in to manage appointments.');
   });
 
   it('actualiza la Card del design system al completar una reserva', async () => {
@@ -120,7 +171,84 @@ describe('AppointmentGrid', () => {
     expect(apiService.bookAppointment).toHaveBeenCalledWith('available-1', 'token-123');
     expect(await screen.findByRole('button', { name: 'Cancel appointment' })).toBeEnabled();
     expect(screen.getByText('Your turn').parentElement).toHaveAttribute('data-appearance', 'solid');
-    expect(mockedUI.success).toHaveBeenCalledWith('Cita agendada con exito.');
+    const summary = screen.getByRole('status', { name: 'Booking confirmed' });
+    expect(screen.getByRole('button', { name: 'View appointment' })).toBeInTheDocument();
+    expect(summary).toHaveTextContent('Friday, November 13');
+    expect(summary).toHaveTextContent(/\d{2}:\d{2} A\.M\. - \d{2}:\d{2} A\.M\./);
+    expect(summary).toHaveTextContent('staff-1');
+    expect(summary).toHaveTextContent('30 minutes');
+    expect(mockedUI.success).toHaveBeenCalledWith('Appointment booked.');
+  });
+
+  it('refreshes availability and explains when another customer booked the slot first', async () => {
+    const user = userEvent.setup();
+    mockedCookiesGet.mockReturnValue('token-123');
+    const availableSlot: AppointmentSlot = {
+      id: 'racing-slot', businessId: 'biz-1', staffId: 'staff-1', status: 'AVAILABLE',
+      startTime: '2026-11-13T10:00:00Z', endTime: '2026-11-13T10:30:00Z',
+      appointment: null, waitlistEntries: [], slotBlocks: [],
+    };
+    const slotTaken: AppointmentSlot = {
+      ...availableSlot,
+      status: 'RESERVED',
+      appointment: { id: 'other-appointment', customerId: 'another-customer' },
+    };
+    vi.mocked(apiService.getAvailableSlots)
+      .mockReturnValueOnce(new Promise(() => {}))
+      .mockResolvedValueOnce([slotTaken]);
+    vi.mocked(apiService.bookAppointment).mockRejectedValue(
+      new ApiError('This appointment slot is no longer available.', 409),
+    );
+    render(<AppointmentGrid initialSlots={[availableSlot]} businessId="biz-1" serverUserId="customer-1" />);
+
+    await user.click(screen.getByRole('button', { name: 'Reserve' }));
+
+    await waitFor(() => expect(apiService.getAvailableSlots).toHaveBeenCalledTimes(2));
+    expect(apiService.getAvailableSlots).toHaveBeenLastCalledWith('biz-1');
+    expect(await screen.findByText('Busy')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Reserve' })).not.toBeInTheDocument();
+    expect(mockedUI.warning).toHaveBeenCalledWith(
+      'Someone just booked this time. Availability has been updated; choose another slot.',
+    );
+    expect(mockedUI.error).not.toHaveBeenCalled();
+  });
+
+  it('ignores repeated presses while a booking request is pending', async () => {
+    const user = userEvent.setup();
+    mockedCookiesGet.mockReturnValue('token-123');
+    vi.mocked(apiService.bookAppointment).mockReturnValue(new Promise(() => {}));
+    const slot: AppointmentSlot = {
+      id: 'available-1', businessId: 'biz-1', staffId: 'staff-1', status: 'AVAILABLE',
+      startTime: '2026-11-13T10:00:00Z', endTime: '2026-11-13T10:30:00Z',
+      appointment: null, waitlistEntries: [], slotBlocks: [],
+    };
+    render(<AppointmentGrid initialSlots={[slot]} businessId="biz-1" serverUserId="customer-1" />);
+
+    const reserve = screen.getByRole('button', { name: 'Reserve' });
+    await user.dblClick(reserve);
+    await user.click(reserve);
+
+    expect(apiService.bookAppointment).toHaveBeenCalledTimes(1);
+  });
+
+  it('offers Retry after a network failure and updates availability', async () => {
+    const user = userEvent.setup();
+    const slot: AppointmentSlot = {
+      id: 'available-1', businessId: 'biz-1', staffId: 'staff-1', status: 'AVAILABLE',
+      startTime: '2026-11-13T10:00:00Z', endTime: '2026-11-13T10:30:00Z',
+      appointment: null, waitlistEntries: [], slotBlocks: [],
+    };
+    vi.mocked(apiService.getAvailableSlots)
+      .mockRejectedValueOnce(new Error('Network down'))
+      .mockResolvedValueOnce([slot]);
+    render(<AppointmentGrid initialSlots={[slot]} businessId="biz-1" serverUserId="customer-1" />);
+
+    expect(await screen.findByText(/Connection lost/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Retry' })).toBeEnabled();
+    await user.click(screen.getByRole('button', { name: 'Retry' }));
+
+    await waitFor(() => expect(apiService.getAvailableSlots).toHaveBeenCalledTimes(2));
+    expect(screen.queryByText(/Connection lost/)).not.toBeInTheDocument();
   });
 
   it.each(['cancelled', 'available'] as const)('no cuenta como reserva activa un slot %s con una cita anterior', async (state) => {
@@ -218,7 +346,7 @@ describe('AppointmentGrid', () => {
     await user.click(screen.getByRole('spinbutton', { name: /^year,/i }));
     await user.keyboard('2026');
     expect(screen.queryByText('Your turn')).not.toBeInTheDocument();
-    expect(screen.getByRole('status')).toHaveTextContent('Your appointment:');
+    expect(screen.getByRole('status', { name: 'Booking confirmed' })).toBeInTheDocument();
 
     await user.click(screen.getByRole('button', { name: 'View appointment' }));
 
@@ -272,7 +400,7 @@ describe('AppointmentGrid', () => {
 
       const title = screen.getByRole('heading', { level: 3 });
       expect(title.textContent).toMatch(/^\d{2}:\d{2} [AP]\.M\.$/);
-      expect(screen.getByRole('listitem')).toHaveAttribute('aria-label', `Appointment ${title.textContent}: available`);
+      expect(screen.getByRole('article')).toHaveAttribute('aria-label', `Appointment ${title.textContent}: available`);
     } finally {
       formatterSpy.mockRestore();
     }

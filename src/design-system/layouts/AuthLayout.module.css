@@ -1,3 +1,6 @@
+@layer reset, ds.atoms, ds.molecules, ds.layouts;
+
+@layer ds.layouts {
 .page {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -107,22 +110,30 @@
   outline-offset: var(--space-2);
 }
 
+/* Alert aliases are theme-independent, matching the Toast palette in both themes. */
 .error,
-.success {
+.success,
+.sessionExpired {
   padding: var(--space-12);
-  border: thin solid var(--border-error);
+  border: thin solid var(--color-alert-error-dark);
   border-radius: var(--radius-8);
-  background: var(--surface-error-light);
-  color: var(--text-error);
+  background: var(--color-alert-error-light);
+  color: var(--color-alert-error-dark);
   font-size: var(--font-size-14);
   line-height: var(--line-height-20);
   overflow-wrap: anywhere;
 }
 
 .success {
-  border-color: var(--border-success);
-  background: var(--surface-success-light);
-  color: var(--text-success);
+  border-color: var(--color-alert-success-dark);
+  background: var(--color-alert-success-light);
+  color: var(--color-alert-success-dark);
+}
+
+.sessionExpired {
+  border-color: var(--border-warning);
+  background: var(--surface-warning-light);
+  color: var(--text-warning);
 }
 
 :global([data-theme='dark']) .brand {
@@ -133,4 +144,5 @@
   .card {
     padding: var(--space-24);
   }
+}
 }

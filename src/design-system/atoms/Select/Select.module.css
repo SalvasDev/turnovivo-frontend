@@ -1,3 +1,7 @@
+@layer reset, ds.atoms, ds.molecules, ds.layouts;
+
+/* Composes Button, so it sits in the molecules layer to override it. */
+@layer ds.molecules {
 .field {
   display: flex;
   flex-direction: column;
@@ -72,9 +76,20 @@
   min-inline-size: 0;
 }
 
-.value {
+.field .trigger .label {
+  display: flex;
+  flex: 1;
+  align-items: center;
   min-inline-size: 0;
-  overflow-wrap: anywhere;
+}
+
+.value {
+  display: block;
+  flex: 1;
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .value[data-placeholder] {
@@ -136,4 +151,12 @@
 .option[data-focus-visible] {
   outline: var(--size-2) solid var(--border-focus);
   outline-offset: calc(-1 * var(--space-2));
+}
+
+@media (forced-colors: active) {
+  .option[data-selected] {
+    background: Highlight;
+    color: HighlightText;
+  }
+}
 }

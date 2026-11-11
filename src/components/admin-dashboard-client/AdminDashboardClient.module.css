@@ -20,22 +20,11 @@
 
 .srOnly {
   position: absolute;
-  inline-size: 1px;
-  block-size: 1px;
+  inline-size: calc(var(--size-2) / 2);
+  block-size: calc(var(--size-2) / 2);
   overflow: hidden;
   clip-path: inset(50%);
   white-space: nowrap;
-}
-
-.table .menuTrigger {
-  --button-tone: var(--icon-secondary);
-  --button-tint-hover: var(--surface-hover);
-  --button-tint-pressed: var(--surface-pressed);
-  inline-size: var(--size-24);
-  block-size: var(--size-24);
-  min-block-size: var(--size-24);
-  padding: 0;
-  border-radius: var(--radius-4);
 }
 
 .popover {

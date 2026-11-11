@@ -5,7 +5,7 @@ import styles from './page.module.css';
 
 export default function Home() {
   return (
-    <div className={styles.home} lang="en">
+    <div className={styles.home}>
       <Image
         src="/sphera.png"
         alt=""

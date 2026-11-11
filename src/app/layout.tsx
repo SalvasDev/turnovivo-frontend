@@ -4,6 +4,7 @@ import "./globals.css";
 import "@/design-system/tokens/tokens.css";
 import { AuthProvider } from "@/context/AuthContext";
 import { UIProvider } from "@/context/UIContext";
+import { themeInitScript } from "@/context/theme-init";
 import styles from "./layout.module.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-inter", display: "swap" });
@@ -11,12 +12,15 @@ const mavenPro = Maven_Pro({ subsets: ["latin"], variable: "--font-maven-pro", d
 
 export const metadata: Metadata = {
   title: "TurnoVivo App",
-  description: "Agenda inteligente anti-no-show",
+  description: "Real-time appointment booking with a smart waitlist",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es" className={`${inter.variable} ${mavenPro.variable}`}>
+    <html lang="en" className={`${inter.variable} ${mavenPro.variable}`} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
       <body className={styles.body}>
         <a
           href="#main-content"

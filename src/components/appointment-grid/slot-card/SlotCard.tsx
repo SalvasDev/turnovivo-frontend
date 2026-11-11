@@ -11,9 +11,9 @@ interface SlotCardProps {
   localBlocks: Record<string, 'CANCELLED' | 'DECLINED'>;
   loadingSlotId: string | null;
   formatTime: (isoString: string) => string;
-  onSlotAction: (slot: AppointmentSlot) => void;
-  onCancelAppointment: (slot: AppointmentSlot) => void;
-  onLeaveWaitlist: (slotId: string) => void;
+  onSlotAction: (slot: AppointmentSlot) => Promise<void>;
+  onCancelAppointment: (slot: AppointmentSlot) => Promise<void>;
+  onLeaveWaitlist: (slotId: string) => Promise<void>;
 }
 
 const SlotCard: FC<SlotCardProps> = ({
@@ -91,16 +91,16 @@ const SlotCard: FC<SlotCardProps> = ({
   }
 
   return (
-    <Card
-      role="listitem"
-      lang="en"
-      aria-label={`Appointment ${formatTime(slot.startTime)}: ${statusLabel.toLowerCase()}`}
-      data-slot-status={isBlocked ? 'blocked' : isMine ? 'mine' : slot.status.toLowerCase()}
-      className={styles.slotCard}
-      title={formatTime(slot.startTime)}
-      badges={badges}
-      action={{ ...action, isPending }}
-    />
+    <li className={styles.item}>
+      <Card
+        aria-label={`Appointment ${formatTime(slot.startTime)}: ${statusLabel.toLowerCase()}`}
+        data-slot-status={isBlocked ? 'blocked' : isMine ? 'mine' : slot.status.toLowerCase()}
+        className={styles.slotCard}
+        title={formatTime(slot.startTime)}
+        badges={badges}
+        action={{ ...action, isPending }}
+      />
+    </li>
   );
 };
 

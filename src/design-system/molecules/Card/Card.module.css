@@ -1,3 +1,6 @@
+@layer reset, ds.atoms, ds.molecules, ds.layouts;
+
+@layer ds.molecules {
 .card {
   display: flex;
   flex-direction: column;
@@ -47,4 +50,5 @@
 
 :global([data-theme='dark']) .card {
   --border-secondary: var(--border-primary);
+}
 }

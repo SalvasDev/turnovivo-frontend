@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { SlotStatus } from '@/types';
 import { useUI } from '@/context/UIContext';
 import { apiService, ApiMessage } from '@/services/api';
 import { Menu, MenuItem, MenuTrigger, Popover } from 'react-aria-components';
 import { Badge, Button, Icon, Table, type TableColumn } from '@/design-system';
+import ConnectionNotice from '@/components/connection-notice';
 import styles from './AdminDashboardClient.module.css';
 
 interface AdminSlot {
@@ -36,6 +37,8 @@ export default function AdminDashboardClient({ initialSlots, businessId, token }
   const { success, error, loading, confirm } = useUI();
   const [slots, setSlots] = useState<AdminSlot[]>(initialSlots);
   const [loadingSlotId, setLoadingSlotId] = useState<string | null>(null);
+  const [isOffline, setIsOffline] = useState(false);
+  const slotsRefreshRef = useRef<() => Promise<void>>(async () => undefined);
 
   const formatTime = (isoString: string) => {
     const parts = new Intl.DateTimeFormat('en-US', {
@@ -53,31 +56,50 @@ export default function AdminDashboardClient({ initialSlots, businessId, token }
     day: 'numeric',
   }).format(new Date(isoString));
   useEffect(() => {
-    const interval = setInterval(async () => {
-      try {
-        const freshSlots = (await apiService.getAvailableSlots(businessId, token)) as AdminSlot[];
-        setSlots(freshSlots);
-      } catch (err: unknown) {
-        console.error('Error de red en sondeo de administración:', err);
-      }
-    }, 3000);
+    let cancelled = false;
+    let request: Promise<void> | null = null;
+    const fetchFreshData = (): Promise<void> => {
+      if (request) return request;
+      request = (async () => {
+        try {
+          const freshSlots = (await apiService.getAvailableSlots(businessId, token)) as AdminSlot[];
+          if (cancelled) return;
+          setSlots(freshSlots);
+          setIsOffline(false);
+        } catch {
+          if (!cancelled) setIsOffline(true);
+        } finally {
+          request = null;
+        }
+      })();
+      return request;
+    };
 
-    return () => clearInterval(interval);
+    slotsRefreshRef.current = fetchFreshData;
+    const interval = setInterval(() => { void fetchFreshData(); }, 3000);
+
+    return () => {
+      cancelled = true;
+      clearInterval(interval);
+      if (slotsRefreshRef.current === fetchFreshData) {
+        slotsRefreshRef.current = async () => undefined;
+      }
+    };
   }, [businessId, token]);
   const handleForceCancel = async (slot: AdminSlot) => {
     if (loadingSlotId !== null) return;
     const appointmentId = slot.appointment?.id;
 
     if (!appointmentId) {
-      error('Este bloque horario no tiene ninguna cita agendada activa.');
+      error('This time slot has no active appointment.');
       return;
     }
 
     const shouldForceCancel = await confirm({
-      title: 'Forzar cancelacion',
-      description: `Estas seguro de forzar la cancelacion del turno de las ${formatTime(slot.startTime)}? Esto liberara el espacio o activara la cascada de Redis.`,
-      confirmText: 'Si, cancelar',
-      cancelText: 'No, volver',
+      title: 'Force cancellation',
+      description: `Force the cancellation of the ${formatTime(slot.startTime)} appointment? This frees the slot or triggers the Redis waitlist cascade.`,
+      confirmText: 'Yes, cancel',
+      cancelText: 'Go back',
       tone: 'danger',
     });
 
@@ -86,13 +108,13 @@ export default function AdminDashboardClient({ initialSlots, businessId, token }
     }
 
     setLoadingSlotId(slot.id);
-    const stopLoadingToast = loading('Procesando cancelacion administrativa...');
+    const stopLoadingToast = loading('Cancelling appointment...');
     try {
       const data = (await apiService.cancelAppointment(appointmentId, token)) as ApiMessage;
 
-      success(`Turno cancelado por administracion. ${data.message ?? ''}`.trim());
+      success(`Appointment cancelled by admin. ${data.message ?? ''}`.trim());
     } catch (err: unknown) {
-      const message = getErrorMessage(err, 'Hubo un problema al cancelar el turno.');
+      const message = getErrorMessage(err, 'Unable to cancel the appointment.');
       error(message);
     } finally {
       stopLoadingToast();
@@ -130,21 +152,25 @@ export default function AdminDashboardClient({ initialSlots, businessId, token }
       renderCell: slot => (
         <MenuTrigger>
           <Button
+            iconOnly
             variant="text"
-            className={styles.menuTrigger}
-            aria-label={`Acciones del turno ${formatDate(slot.startTime)} ${formatTime(slot.startTime)} - ${formatTime(slot.endTime)}`}
+            color="neutral"
+            size="small"
+            aria-label={`Actions for ${formatDate(slot.startTime)} ${formatTime(slot.startTime)} - ${formatTime(slot.endTime)}`}
             isDisabled={loadingSlotId !== null}
+            isPending={loadingSlotId === slot.id}
+            pendingLabel="Cancelling appointment"
           >
-            <span title="Acciones del turno"><Icon name="moreVertical" /></span>
+            <span title="Appointment actions"><Icon name="moreVertical" /></span>
           </Button>
           <Popover placement="bottom end" offset={8} className={styles.popover}>
-            <Menu aria-label="Acciones del turno" className={styles.menu}>
+            <Menu aria-label="Appointment actions" className={styles.menu}>
               <MenuItem
                 className={styles.menuItem}
                 isDisabled={loadingSlotId !== null || slot.status !== 'RESERVED' || !slot.appointment?.id}
                 onAction={() => { void handleForceCancel(slot); }}
               >
-                Forzar cancelacion
+                Force cancellation
               </MenuItem>
             </Menu>
           </Popover>
@@ -154,15 +180,18 @@ export default function AdminDashboardClient({ initialSlots, businessId, token }
   ];
 
   return (
-    <Table
-      caption="Estado operativo de turnos y controles de cancelacion administrativa"
-      columns={columns}
-      items={slots}
-      getRowId={slot => slot.id}
-      emptyMessage="No appointments available."
-      aria-busy={loadingSlotId !== null}
-      className={styles.table}
-    />
+    <>
+      <ConnectionNotice isOffline={isOffline} onRetry={() => slotsRefreshRef.current()} />
+      <Table
+        caption="Appointment status and admin cancellation controls"
+        columns={columns}
+        items={slots}
+        getRowId={slot => slot.id}
+        emptyMessage="No appointments available."
+        aria-busy={loadingSlotId !== null}
+        className={styles.table}
+      />
+    </>
   );
 }
 

@@ -1,3 +1,6 @@
+@layer reset, ds.atoms, ds.molecules, ds.layouts;
+
+@layer ds.molecules {
 .toast {
   display: flex;
   align-items: center;
@@ -88,18 +91,9 @@
   outline-offset: var(--space-2);
 }
 
-.toast[data-variant='loading'] .icon > svg {
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
+@media (forced-colors: active) {
+  .toast {
+    border: thin solid CanvasText;
   }
 }
-
-@media (prefers-reduced-motion: reduce) {
-  .toast[data-variant='loading'] .icon > svg {
-    animation: none;
-  }
 }

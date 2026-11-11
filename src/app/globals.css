@@ -1,4 +1,5 @@
-@layer reset, ds;
+/* App CSS stays unlayered, so it always overrides the design system. */
+@layer reset, ds.atoms, ds.molecules, ds.layouts;
 
 @layer reset {
   *,
@@ -111,11 +112,11 @@
   [hidden]:where(:not([hidden="until-found"])) {
     display: none !important;
   }
-}
 
-:focus-visible {
-  outline: var(--size-2) solid var(--border-focus);
-  outline-offset: var(--space-2);
+  :focus-visible {
+    outline: var(--size-2) solid var(--border-focus);
+    outline-offset: var(--space-2);
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

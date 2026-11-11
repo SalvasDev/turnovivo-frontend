@@ -42,6 +42,11 @@ export const icons = {
       <path d="M12 2v2m0 16v2M2 12h2m16 0h2M4.93 4.93l1.42 1.42m11.3 11.3 1.42 1.42M4.93 19.07l1.42-1.42m11.3-11.3 1.42-1.42" />
     </svg>
   ),
+  darkMode: (props: IconSVGProps) => (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" xmlns="http://www.w3.org/2000/svg" {...props}>
+      <path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11Z" />
+    </svg>
+  ),
   add: (props: IconSVGProps) => (
     <svg viewBox="0 0 20 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg" {...props}>
       <path d="M9.14286 16V10.8571H4V9.14286H9.14286V4H10.8571V9.14286H16V10.8571H10.8571V16H9.14286Z" />
@@ -110,6 +115,11 @@ export const icons = {
         d="M9.16675 5.83317H10.8334V7.49984H9.16675V5.83317ZM9.16675 9.1665H10.8334V14.1665H9.16675V9.1665ZM10.0001 1.6665C5.40008 1.6665 1.66675 5.39984 1.66675 9.99984C1.66675 14.5998 5.40008 18.3332 10.0001 18.3332C14.6001 18.3332 18.3334 14.5998 18.3334 9.99984C18.3334 5.39984 14.6001 1.6665 10.0001 1.6665ZM10.0001 16.6665C6.32508 16.6665 3.33341 13.6748 3.33341 9.99984C3.33341 6.32484 6.32508 3.33317 10.0001 3.33317C13.6751 3.33317 16.6667 6.32484 16.6667 9.99984C16.6667 13.6748 13.6751 16.6665 10.0001 16.6665Z"
         fill="currentColor"
       />
+    </svg>
+  ),
+  errorOutline: (props: IconSVGProps) => (
+    <svg viewBox="0 0 20 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg" {...props}>
+      <path d="M9.167 12.5h1.666v1.667H9.167V12.5Zm0-6.667h1.666v5H9.167v-5ZM10 1.667a8.333 8.333 0 1 0 0 16.666 8.333 8.333 0 0 0 0-16.666Zm0 15A6.667 6.667 0 1 1 10 3.333a6.667 6.667 0 0 1 0 13.334Z" />
     </svg>
   ),
   pageInfo: (props: IconSVGProps) => (

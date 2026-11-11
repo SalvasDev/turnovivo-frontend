@@ -3,6 +3,8 @@
 import { useCallback, useState } from 'react';
 import { Menu, MenuItem, MenuTrigger, Popover } from 'react-aria-components';
 import { useUI } from '@/context/UIContext';
+import { fetchApi, requireValid } from '@/services/api';
+import { parseAdminUser, parseAdminUsers, parseBusinessAdmins } from '@/services/api-parsers';
 import { Badge, Button, Icon, Table, type TableColumn } from '@/design-system';
 import {
   CreateAdminModal,
@@ -11,8 +13,6 @@ import {
   type BusinessFormValues,
 } from '../business-forms';
 import styles from './SuperAdminBusinessesClient.module.css';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
 
 export interface BusinessAdmin {
   id: string;
@@ -30,31 +30,18 @@ export interface AdminUser {
   role: string;
 }
 
-async function apiFetch<T>(path: string, token: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(`${API_URL}${path}`, {
+function apiFetch(path: string, token: string, init?: RequestInit): Promise<unknown> {
+  return fetchApi(path, {
     ...init,
     headers: {
       ...(init?.headers || {}),
       Authorization: `Bearer ${token}`,
     },
   });
-
-  const isJson = response.headers.get('content-type')?.includes('application/json');
-  const payload = isJson ? await response.json() : null;
-
-  if (!response.ok) {
-    const message = (payload as { message?: string | string[] } | null)?.message;
-    throw new Error(
-      Array.isArray(message) ? message.join(', ') : message || 'Error en la petición.',
-    );
-  }
-
-  return payload as T;
 }
 
 interface SuperAdminBusinessesClientProps {
   token: string;
-  userEmail: string;
   initialBusinesses: BusinessAdmin[];
   initialAdmins: AdminUser[];
 }
@@ -71,7 +58,7 @@ export default function SuperAdminBusinessesClient({
   initialBusinesses,
   initialAdmins,
 }: SuperAdminBusinessesClientProps) {
-  const { success, error, confirm } = useUI();
+  const { success, error, loading, confirm } = useUI();
 
   const [businesses, setBusinesses] = useState<BusinessAdmin[]>(initialBusinesses);
   const [admins, setAdmins] = useState<AdminUser[]>(initialAdmins);
@@ -82,22 +69,22 @@ export default function SuperAdminBusinessesClient({
   const refresh = useCallback(async () => {
     try {
       const [biz, adm] = await Promise.all([
-        apiFetch<BusinessAdmin[]>('/businesses', token, { cache: 'no-store' }),
-        apiFetch<AdminUser[]>('/admin/users?role=ADMIN', token, { cache: 'no-store' }),
+        apiFetch('/businesses', token, { cache: 'no-store' }).then(payload => requireValid(parseBusinessAdmins(payload))),
+        apiFetch('/admin/users?role=ADMIN', token, { cache: 'no-store' }).then(payload => requireValid(parseAdminUsers(payload))),
       ]);
       setBusinesses(biz);
       setAdmins(adm);
     } catch (err: unknown) {
-      error(getErrorMessage(err, 'No se pudieron cargar los datos.'));
+      error(getErrorMessage(err, 'Unable to load the latest data.'));
     }
   }, [token, error]);
 
   const registerAdmin = async (values: AdminFormValues) => {
-    const admin = await apiFetch<AdminUser>('/admin/users', token, {
+    const admin = requireValid(parseAdminUser(await apiFetch('/admin/users', token, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email: values.email.trim(), password: values.password }),
-    });
+    })));
     setAdmins(previous => [...previous.filter(item => item.id !== admin.id), admin].sort((first, second) => first.email.localeCompare(second.email)));
     return admin;
   };
@@ -107,7 +94,7 @@ export default function SuperAdminBusinessesClient({
     setSubmitting(true);
     try {
       await registerAdmin(values);
-      success('Administrador creado correctamente.');
+      success('Admin created.');
       setModal(null);
       await refresh();
     } finally {
@@ -120,12 +107,12 @@ export default function SuperAdminBusinessesClient({
     setSubmitting(true);
     try {
       const ownerId = values.newOwner ? (await registerAdmin(values.newOwner)).id : values.ownerId;
-      await apiFetch<BusinessAdmin>(editingBusiness ? `/businesses/${editingBusiness.id}` : '/businesses', token, {
+      await apiFetch(editingBusiness ? `/businesses/${editingBusiness.id}` : '/businesses', token, {
         method: editingBusiness ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name: values.name.trim(), slug: values.slug.trim(), ownerId }),
       });
-      success(editingBusiness ? 'Empresa actualizada correctamente.' : 'Empresa creada correctamente.');
+      success(editingBusiness ? 'Company updated.' : 'Company created.');
       setModal(null);
       setEditingBusiness(undefined);
       await refresh();
@@ -138,22 +125,24 @@ export default function SuperAdminBusinessesClient({
     if (submitting) return;
     setSubmitting(true);
     const activate = !business.active;
+    let stopLoadingToast: (() => void) | undefined;
     try {
       const confirmed = await confirm({
-      title: activate ? 'Reactivar empresa' : 'Desactivar empresa',
-      description: activate
-        ? `¿Reactivar "${business.name}"? Volverá a ser visible y reservable.`
-        : `¿Desactivar "${business.name}"? Dejará de ser visible y reservable al público.`,
-      confirmText: activate ? 'Sí, reactivar' : 'Sí, desactivar',
-      cancelText: 'Volver',
-      tone: activate ? 'default' : 'danger',
-    });
-    if (!confirmed) {
-      return;
-    }
+        title: activate ? 'Reactivate company' : 'Deactivate company',
+        description: activate
+          ? `Reactivate "${business.name}"? It will be visible and bookable again.`
+          : `Deactivate "${business.name}"? It will no longer be visible or bookable to the public.`,
+        confirmText: activate ? 'Yes, reactivate' : 'Yes, deactivate',
+        cancelText: 'Go back',
+        tone: activate ? 'default' : 'danger',
+      });
+      if (!confirmed) {
+        return;
+      }
 
+      stopLoadingToast = loading(activate ? 'Reactivating company...' : 'Deactivating company...');
       if (activate) {
-        await apiFetch<BusinessAdmin>(`/businesses/${business.id}`, token, {
+        await apiFetch(`/businesses/${business.id}`, token, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -164,13 +153,14 @@ export default function SuperAdminBusinessesClient({
           }),
         });
       } else {
-        await apiFetch<void>(`/businesses/${business.id}`, token, { method: 'DELETE' });
+        await apiFetch(`/businesses/${business.id}`, token, { method: 'DELETE' });
       }
-      success(activate ? 'Empresa reactivada.' : 'Empresa desactivada.');
+      success(activate ? 'Company reactivated.' : 'Company deactivated.');
       await refresh();
     } catch (err: unknown) {
-      error(getErrorMessage(err, 'No se pudo actualizar el estado.'));
+      error(getErrorMessage(err, 'Unable to update the company status.'));
     } finally {
+      stopLoadingToast?.();
       setSubmitting(false);
     }
   };
@@ -194,7 +184,7 @@ export default function SuperAdminBusinessesClient({
       id: 'actions', header: 'Actions', width: '12%',
       renderCell: business => (
         <MenuTrigger>
-          <Button variant="text" className={styles.menuTrigger} aria-label={`Actions for ${business.name}`} isDisabled={submitting}>
+          <Button iconOnly variant="text" color="neutral" size="small" aria-label={`Actions for ${business.name}`} isDisabled={submitting}>
             <span title="Company actions"><Icon name="moreVertical" /></span>
           </Button>
           <Popover placement="bottom end" offset={8} className={styles.popover}>
@@ -211,7 +201,7 @@ export default function SuperAdminBusinessesClient({
   ];
 
   return (
-    <section className={styles.page} aria-labelledby="super-admin-title" lang="en">
+    <section className={styles.page} aria-labelledby="super-admin-title">
       <div className={styles.content}>
         <header className={styles.header}>
           <h1 id="super-admin-title" className={styles.title}>Platform companies</h1>

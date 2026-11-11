@@ -59,15 +59,7 @@ function defaultDurationByType(type: ToastType) {
 }
 
 function normalizeLoadingMessage(message: string) {
-  const trimmed = message.trim();
-  if (!trimmed) return 'Procesando...';
-
-  const lower = trimmed.toLowerCase();
-  if (lower.startsWith('procesando')) {
-    return trimmed;
-  }
-
-  return `Procesando: ${trimmed}`;
+  return message.trim() || 'Processing...';
 }
 
 export function UIProvider({ children }: { children: ReactNode }) {
@@ -76,8 +68,8 @@ export function UIProvider({ children }: { children: ReactNode }) {
     open: false,
     title: '',
     description: '',
-    confirmText: 'Confirmar',
-    cancelText: 'Cancelar',
+    confirmText: 'Confirm',
+    cancelText: 'Cancel',
     tone: 'default',
   });
 
@@ -123,10 +115,10 @@ export function UIProvider({ children }: { children: ReactNode }) {
   const confirm = useCallback((options: ConfirmOptions) => {
     setConfirmState({
       open: true,
-      title: options.title || 'Confirmar accion',
+      title: options.title || 'Confirm action',
       description: options.description,
-      confirmText: options.confirmText || 'Confirmar',
-      cancelText: options.cancelText || 'Cancelar',
+      confirmText: options.confirmText || 'Confirm',
+      cancelText: options.cancelText || 'Cancel',
       tone: options.tone || 'default',
       variant: options.variant,
     });
@@ -155,7 +147,7 @@ export function UIProvider({ children }: { children: ReactNode }) {
       <div
         className={styles.toasts}
         role="region"
-        aria-label="Notificaciones"
+        aria-label="Notifications"
       >
         {toasts.map((toast) => (
           <Toast
@@ -170,7 +162,7 @@ export function UIProvider({ children }: { children: ReactNode }) {
 
       <ConfirmDialog
         isOpen={confirmState.open}
-        title={confirmState.title || 'Confirmar accion'}
+        title={confirmState.title || 'Confirm action'}
         description={confirmState.description}
         confirmText={confirmState.confirmText}
         cancelText={confirmState.cancelText}
@@ -185,7 +177,7 @@ export function UIProvider({ children }: { children: ReactNode }) {
 export function useUI() {
   const context = useContext(UIContext);
   if (!context) {
-    throw new Error('useUI debe usarse dentro de UIProvider');
+    throw new Error('useUI must be used within a UIProvider');
   }
   return context;
 }

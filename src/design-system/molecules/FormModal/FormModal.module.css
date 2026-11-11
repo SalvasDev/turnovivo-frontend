@@ -1,3 +1,6 @@
+@layer reset, ds.atoms, ds.molecules, ds.layouts;
+
+@layer ds.molecules {
 .overlay {
   position: fixed;
   inset: 0;
@@ -34,6 +37,10 @@
   font-family: var(--font-family-inter), sans-serif;
 }
 
+.body {
+  min-inline-size: 0;
+}
+
 .header {
   display: flex;
   align-items: center;
@@ -59,4 +66,5 @@
   min-block-size: var(--size-24);
   padding: 0;
   border-radius: var(--radius-4);
+}
 }

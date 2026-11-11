@@ -46,9 +46,9 @@
   --button-warning-label: var(--gold-90);
   --button-warning-filled-label: var(--neutral-100);
   --button-neutral-label: var(--neutral-70);
-  --button-success-filled-surface-default: var(--green-70);
-  --button-success-filled-surface-hover: var(--green-80);
-  --button-success-filled-surface-pressed: var(--green-90);
+  --button-success-filled-surface-default: var(--green-80);
+  --button-success-filled-surface-hover: var(--green-90);
+  --button-success-filled-surface-pressed: var(--green-100);
   --button-success-filled-label: var(--neutral-0);
   --button-success-outline-border-default: var(--green-70);
   --button-success-outline-surface-hover: var(--green-20);

@@ -32,7 +32,8 @@ export function CreateBusinessModal({ isOpen, admins, business, onClose, onSubmi
   const [newOwnerMode, setNewOwnerMode] = useState(false);
   const [newOwner, setNewOwner] = useState<AdminFormValues>({ email: '', password: '' });
   const [pending, setPending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+  const [formError, setFormError] = useState<string | null>(null);
   const title = business ? 'Edit company' : 'New company';
   const ownerToggle = (
     <Button
@@ -51,19 +52,38 @@ export function CreateBusinessModal({ isOpen, admins, business, onClose, onSubmi
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (pending) return;
-    if (values.name.trim().length < 3) { setError('Use at least 3 characters for the company name.'); return; }
-    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(values.slug)) { setError('Use lowercase letters, numbers and hyphens for the slug.'); return; }
-    if (!newOwnerMode && !values.ownerId) { setError('Select an administrator for the company.'); return; }
+    setFieldErrors({});
+    setFormError(null);
+    if (values.name.trim().length < 3) {
+      setFieldErrors({ name: 'Use at least 3 characters for the company name.' });
+      return;
+    }
+    if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(values.slug)) {
+      setFieldErrors({ slug: 'Use lowercase letters, numbers and hyphens for the slug.' });
+      return;
+    }
+    if (!newOwnerMode && !values.ownerId) {
+      setFieldErrors({ ownerId: 'Select an administrator for the company.' });
+      return;
+    }
     if (newOwnerMode) {
       const passwordError = validateAdminPassword(newOwner.password);
-      if (passwordError) { setError(passwordError); return; }
+      if (passwordError) {
+        setFieldErrors({ adminPassword: passwordError });
+        return;
+      }
     }
     setPending(true);
-    setError(null);
     try {
       await onSubmit({ ...values, name: values.name.trim(), slug: values.slug.trim(), newOwner: newOwnerMode ? { ...newOwner, email: newOwner.email.trim() } : undefined });
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Could not save the company.');
+      const message = error instanceof Error ? error.message : 'Could not save the company.';
+      if (/slug|url/i.test(message)) setFieldErrors({ slug: message });
+      else if (/name/i.test(message)) setFieldErrors({ name: message });
+      else if (newOwnerMode && /e-?mail/i.test(message)) setFieldErrors({ adminEmail: message });
+      else if (newOwnerMode && /password/i.test(message)) setFieldErrors({ adminPassword: message });
+      else if (!newOwnerMode && /owner|admin/i.test(message)) setFieldErrors({ ownerId: message });
+      else setFormError(message);
     } finally {
       setPending(false);
     }
@@ -71,16 +91,16 @@ export function CreateBusinessModal({ isOpen, admins, business, onClose, onSubmi
 
   return (
     <FormModal isOpen={isOpen} title={title} onClose={onClose} isPending={pending}>
-      <form className={styles.form} aria-label={title} aria-busy={pending} onSubmit={handleSubmit} lang="en">
-        {error && <Toast variant="error" isDismissible={false}>{error}</Toast>}
-        <Input autoFocus label="Name" name="name" isRequired minLength={3} value={values.name} onChange={name => setValues(previous => ({ ...previous, name, slug: slugTouched ? previous.slug : slugify(name) }))} placeholder="Premium barber" isReadOnly={pending} />
-        <Input label="SLUG URL" name="slug" isRequired value={values.slug} onChange={slug => { setSlugTouched(true); setValues(previous => ({ ...previous, slug })); }} placeholder="barberia-premium" isReadOnly={pending} />
+      <form className={styles.form} aria-label={title} aria-busy={pending} onSubmit={handleSubmit}>
+        {formError && <Toast variant="error" isDismissible={false}>{formError}</Toast>}
+        <Input autoFocus label="Name" name="name" isRequired minLength={3} value={values.name} onChange={name => { setValues(previous => ({ ...previous, name, slug: slugTouched ? previous.slug : slugify(name) })); setFieldErrors(previous => ({ ...previous, name: '', slug: '' })); setFormError(null); }} placeholder="Premium barber" isReadOnly={pending} isInvalid={!!fieldErrors.name} errorMessage={fieldErrors.name} />
+        <Input label="SLUG URL" name="slug" isRequired value={values.slug} onChange={slug => { setSlugTouched(true); setValues(previous => ({ ...previous, slug })); setFieldErrors(previous => ({ ...previous, slug: '' })); setFormError(null); }} placeholder="barberia-premium" isReadOnly={pending} isInvalid={!!fieldErrors.slug} errorMessage={fieldErrors.slug} />
         <div className={styles.ownerFields}>
           {newOwnerMode && <div className={styles.ownerHeader}>{ownerToggle}</div>}
           {newOwnerMode ? (
             <>
-              <Input label="Admin email" type="email" name="admin-email" isRequired value={newOwner.email} onChange={email => setNewOwner(previous => ({ ...previous, email }))} placeholder="admin@company.com" autoComplete="email" isReadOnly={pending} />
-              <Input label="Admin password" type="password" name="admin-password" isRequired value={newOwner.password} onChange={password => setNewOwner(previous => ({ ...previous, password }))} placeholder="your password" autoComplete="new-password" minLength={8} validate={validateAdminPassword} helperText="At least 8 characters, including one number" isReadOnly={pending} />
+              <Input label="Admin email" type="email" name="admin-email" isRequired value={newOwner.email} onChange={email => { setNewOwner(previous => ({ ...previous, email })); setFieldErrors(previous => ({ ...previous, adminEmail: '' })); setFormError(null); }} placeholder="admin@company.com" autoComplete="email" isReadOnly={pending} isInvalid={!!fieldErrors.adminEmail} errorMessage={fieldErrors.adminEmail} />
+              <Input label="Admin password" type="password" name="admin-password" isRequired value={newOwner.password} onChange={password => { setNewOwner(previous => ({ ...previous, password })); setFieldErrors(previous => ({ ...previous, adminPassword: '' })); setFormError(null); }} placeholder="your password" autoComplete="new-password" minLength={8} validate={validateAdminPassword} helperText="At least 8 characters, including one number" isReadOnly={pending} isInvalid={!!fieldErrors.adminPassword} errorMessage={fieldErrors.adminPassword} />
             </>
           ) : (
             <Select
@@ -90,9 +110,11 @@ export function CreateBusinessModal({ isOpen, admins, business, onClose, onSubmi
               placeholder="Select an admin"
               isRequired
               selectedKey={values.ownerId || null}
-              onSelectionChange={key => setValues(previous => ({ ...previous, ownerId: key == null ? '' : String(key) }))}
+              onSelectionChange={key => { setValues(previous => ({ ...previous, ownerId: key == null ? '' : String(key) })); setFieldErrors(previous => ({ ...previous, ownerId: '' })); setFormError(null); }}
               options={admins.map(admin => ({ id: admin.id, label: admin.email }))}
               isDisabled={pending || admins.length === 0}
+              isInvalid={!!fieldErrors.ownerId}
+              errorMessage={fieldErrors.ownerId}
               helperText={admins.length === 0 ? 'No administrators available. Create one to assign an owner.' : undefined}
             />
           )}

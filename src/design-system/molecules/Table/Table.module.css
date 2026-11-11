@@ -1,3 +1,6 @@
+@layer reset, ds.atoms, ds.molecules, ds.layouts;
+
+@layer ds.molecules {
 .viewport {
   max-inline-size: 100%;
   min-inline-size: 0;
@@ -62,4 +65,5 @@
   padding: var(--space-32) var(--space-20);
   color: var(--text-secondary);
   text-align: center;
+}
 }

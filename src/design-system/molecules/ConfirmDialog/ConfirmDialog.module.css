@@ -1,3 +1,6 @@
+@layer reset, ds.atoms, ds.molecules, ds.layouts;
+
+@layer ds.molecules {
 .overlay {
   position: fixed;
   inset: 0;
@@ -76,4 +79,5 @@
 
 .actions .cancel {
   --button-border-width: calc(var(--size-2) / 2);
+}
 }

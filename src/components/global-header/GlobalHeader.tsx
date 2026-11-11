@@ -5,16 +5,20 @@ import { usePathname } from 'next/navigation';
 import { useState } from 'react';
 import { Button as AriaButton, Menu, MenuItem, MenuTrigger, Popover } from 'react-aria-components';
 import { useAuth } from '@/context/AuthContext';
+import { setTheme, useTheme } from '@/context/theme';
 import { DEFAULT_DEMO_PATH } from '@/config/app';
 import { Icon } from '@/design-system/atoms/Icon';
 import { Avatar } from '@/design-system/atoms/Avatar';
+import { Spinner } from '@/design-system/atoms/Spinner';
 import styles from './GlobalHeader.module.css';
 
+const PUBLIC_PATHS = new Set(['/', '/design-system']);
+
 function getDisplayName(email?: string) {
-  if (!email) return 'Invitado';
+  if (!email) return 'Guest';
   const local = email.split('@')[0] ?? '';
   const normalized = local.replace(/[._-]+/g, ' ').trim();
-  if (!normalized) return 'Usuario';
+  if (!normalized) return 'User';
   return normalized
     .split(' ')
     .filter(Boolean)
@@ -26,19 +30,22 @@ export default function GlobalHeader() {
   const pathname = usePathname();
   
   const { user, logout, loading } = useAuth();
-  const [darkTheme, setDarkTheme] = useState(false);
+  const theme = useTheme();
+  const isDark = theme === 'dark';
+  const themeLabel = isDark ? 'Switch to light theme' : 'Switch to dark theme';
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
 
   const canAccessAdmin = user?.role === 'ADMIN' || user?.role === 'STAFF';
   const displayName = getDisplayName(user?.email);
 
-  if (pathname !== '/' && (loading || !user)) {
+  if (!PUBLIC_PATHS.has(pathname) && (loading || !user)) {
     return null;
   }
 
   return (
     <header className={pathname === '/' ? `${styles.header} ${styles.homeHeader}` : styles.header} role="banner">
       <div className={styles.inner}>
-        <Link href={pathname === '/' ? '/' : DEFAULT_DEMO_PATH} className={styles.brand} aria-label="Ir al inicio de TurnoVivo">
+        <Link href={pathname === '/' || !user ? '/' : DEFAULT_DEMO_PATH} className={styles.brand} aria-label="TurnoVivo home">
           TURNOVIVO
         </Link>
 
@@ -56,27 +63,27 @@ export default function GlobalHeader() {
           <button
             type="button"
             className={styles.iconButton}
-            aria-label={darkTheme ? 'Activar tema claro' : 'Activar tema oscuro'}
-            title={darkTheme ? 'Activar tema claro' : 'Activar tema oscuro'}
-            aria-pressed={darkTheme}
-            onClick={() => {
-              const nextTheme = !darkTheme;
-              document.documentElement.dataset.theme = nextTheme ? 'dark' : 'light';
-              setDarkTheme(nextTheme);
-            }}
+            aria-label={themeLabel}
+            title={themeLabel}
+            onClick={() => setTheme(isDark ? 'light' : 'dark')}
           >
-            <Icon name="lightMode" />
+            <Icon name={isDark ? 'lightMode' : 'darkMode'} />
           </button>
           {!loading && user && (
             <nav aria-label="User menu">
               <MenuTrigger>
                 <AriaButton
                   className={styles.menuButton}
-                  aria-label={`User menu of ${displayName}`}
+                  aria-label={isLoggingOut ? 'Signing out' : `User menu of ${displayName}`}
+                  isDisabled={isLoggingOut}
                 >
-                  <span title={`User menu of ${displayName}`}>
-                    <Avatar name={displayName} decorative />
-                  </span>
+                  {isLoggingOut ? (
+                    <Spinner size="medium" />
+                  ) : (
+                    <span title={`User menu of ${displayName}`}>
+                      <Avatar name={displayName} decorative />
+                    </span>
+                  )}
                 </AriaButton>
                 <Popover placement="bottom end" offset={8} className={styles.popover}>
                   <div className={styles.identity}>
@@ -89,7 +96,14 @@ export default function GlobalHeader() {
                         Dashboard Admin
                       </MenuItem>
                     )}
-                    <MenuItem onAction={logout} className={styles.menuItem}>
+                    <MenuItem
+                      onAction={() => {
+                        // The session is ending; keep the trigger locked until the page navigates away.
+                        setIsLoggingOut(true);
+                        void logout();
+                      }}
+                      className={styles.menuItem}
+                    >
                       Log out
                     </MenuItem>
                   </Menu>

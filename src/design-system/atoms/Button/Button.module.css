@@ -1,7 +1,7 @@
-@layer reset, ds;
+@layer reset, ds.atoms, ds.molecules, ds.layouts;
 
 /* Layered so any unlayered consumer class can override it without specificity fights. */
-@layer ds {
+@layer ds.atoms {
   .button {
     /* Brand palette: [data-color] swaps it, variants only consume it. */
     --button-solid: var(--button-filled-bg);
@@ -12,10 +12,11 @@
     --button-border: var(--button-outline-border);
     --button-tint-hover: var(--button-outline-surface-hover);
     --button-tint-pressed: var(--button-outline-surface-pressed);
-    --button-border-width: var(--size-2);
+    --button-border-width: var(--size-1);
     --button-padding-block: var(--space-12);
     --button-padding-inline: var(--space-24);
     display: inline-flex;
+    position: relative;
     align-items: center;
     justify-content: center;
     box-sizing: border-box;
@@ -38,6 +39,35 @@
     text-decoration: none;
     vertical-align: middle;
     cursor: pointer;
+    transition:
+      background-color var(--motion-duration-fast) var(--motion-easing-standard),
+      border-color var(--motion-duration-fast) var(--motion-easing-standard),
+      color var(--motion-duration-fast) var(--motion-easing-standard);
+  }
+
+  .content {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: inherit;
+    min-inline-size: 0;
+  }
+
+  .button[data-icon-only] {
+    --button-padding-block: 0rem;
+    --button-padding-inline: 0rem;
+    inline-size: var(--size-48);
+    block-size: var(--size-48);
+  }
+
+  .button[data-icon-only][data-size='medium'] {
+    inline-size: var(--size-40);
+    block-size: var(--size-40);
+  }
+
+  .button[data-icon-only][data-size='small'] {
+    inline-size: var(--size-32);
+    block-size: var(--size-32);
   }
 
   .button[data-size='medium'] {
@@ -100,11 +130,12 @@
     --button-tint-pressed: var(--button-neutral-outline-surface-pressed);
   }
 
+  /* Light fill + dark label: a deep blue fill vanishes against the dark surface (1:1). */
   :global([data-theme='dark']) .button[data-color='brand'] {
-    --button-solid: var(--blue-100);
-    --button-solid-hover: var(--blue-90);
-    --button-solid-pressed: var(--blue-80);
-    --button-on-solid: var(--blue-50);
+    --button-solid: var(--blue-40);
+    --button-solid-hover: var(--blue-30);
+    --button-solid-pressed: var(--blue-20);
+    --button-on-solid: var(--neutral-100);
     --button-tint-hover: var(--surface-hover);
     --button-tint-pressed: var(--surface-pressed);
   }
@@ -156,6 +187,37 @@
     border-color: var(--button-outline-border-disabled);
   }
 
+  /* Pending keeps the variant colors so loading never reads as disabled. */
+  .button[data-pending] {
+    cursor: progress;
+  }
+
+  .button[data-variant='filled'][data-pending] {
+    background: var(--button-solid);
+    color: var(--button-on-solid);
+  }
+
+  .button[data-variant='outlined'][data-pending] {
+    border-color: var(--button-border);
+    color: var(--button-tone);
+  }
+
+  .button[data-variant='text'][data-pending] {
+    color: var(--button-tone);
+  }
+
+  /* Opacity, not visibility, so the label stays part of the accessible name. */
+  .button[data-pending] .content {
+    opacity: 0;
+  }
+
+  .progress {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+  }
+
   .button[data-focus-visible] {
     outline: var(--size-2) dashed var(--border-focus);
     outline-offset: var(--space-2);
@@ -183,5 +245,20 @@
   .icon > svg {
     inline-size: 100%;
     block-size: 100%;
+  }
+
+  @media (forced-colors: active) {
+    .button {
+      border-color: ButtonText;
+    }
+
+    .button[data-disabled] {
+      border-color: GrayText;
+      color: GrayText;
+    }
+
+    .button[data-focus-visible] {
+      outline-color: Highlight;
+    }
   }
 }

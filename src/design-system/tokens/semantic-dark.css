@@ -1,4 +1,5 @@
 [data-theme="dark"] {
+  color-scheme: dark;
   --text-primary: var(--neutral-10);
   --text-secondary: var(--neutral-30);
   --text-tertiary: var(--neutral-40);

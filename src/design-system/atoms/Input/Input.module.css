@@ -1,3 +1,6 @@
+@layer reset, ds.atoms, ds.molecules, ds.layouts;
+
+@layer ds.atoms {
 .field {
   display: flex;
   flex-direction: column;
@@ -146,6 +149,13 @@
   outline-offset: 0;
 }
 
+@media (forced-colors: active) {
+  .field[data-state='active'] .control,
+  .control:has(.input[data-focused]) {
+    outline-color: Highlight;
+  }
+}
+
 .field[data-state='success'] .control {
   border-color: var(--border-success);
 }
@@ -188,4 +198,5 @@
 .field[data-disabled] .control,
 .field[data-disabled] .input {
   cursor: not-allowed;
+}
 }

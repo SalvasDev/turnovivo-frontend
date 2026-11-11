@@ -2,25 +2,11 @@
 
 import {
   FieldError, Label, ListBox, ListBoxItem, Popover, Select as AriaSelect, SelectValue, Text,
-  type SelectProps as AriaSelectProps,
 } from 'react-aria-components';
-import type { ReactNode } from 'react';
 import { Button } from '../Button';
 import { Icon } from '../Icon';
+import type { SelectProps } from './Select.types';
 import styles from './Select.module.css';
-
-export interface SelectOption {
-  id: string;
-  label: string;
-}
-
-export interface SelectProps extends Omit<AriaSelectProps<SelectOption>, 'children'> {
-  label: ReactNode;
-  labelAction?: ReactNode;
-  options: readonly SelectOption[];
-  helperText?: ReactNode;
-  errorMessage?: ReactNode;
-}
 
 export function Select({ label, labelAction, options, helperText, errorMessage, isRequired, className, ...props }: SelectProps) {
   return (
@@ -35,9 +21,8 @@ export function Select({ label, labelAction, options, helperText, errorMessage, 
         </Label>
         {labelAction}
       </div>
-      <Button variant="outlined" className={styles.trigger}>
+      <Button variant="outlined" className={styles.trigger} endIcon={<Icon name="caret" />}>
         <SelectValue className={styles.value} />
-        <Icon name="caret" />
       </Button>
       {helperText && <Text slot="description" className={styles.helper}>{helperText}</Text>}
       <FieldError className={styles.error}>{errorMessage}</FieldError>

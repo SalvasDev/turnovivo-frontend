@@ -21,9 +21,9 @@ function renderDashboard(slots: AppointmentSlot[] = [reservedSlot]) {
 }
 
 async function openCancelDialog(user: ReturnType<typeof userEvent.setup>) {
-  await user.click(screen.getByRole('button', { name: /^Acciones del turno/ }));
-  await user.click(screen.getByRole('menuitem', { name: 'Forzar cancelacion' }));
-  return screen.getByRole('alertdialog', { name: 'Forzar cancelacion' });
+  await user.click(screen.getByRole('button', { name: /^Actions for/ }));
+  await user.click(screen.getByRole('menuitem', { name: 'Force cancellation' }));
+  return screen.getByRole('alertdialog', { name: 'Force cancellation' });
 }
 
 describe('AdminDashboardClient', () => {
@@ -44,7 +44,7 @@ describe('AdminDashboardClient', () => {
     expect(screen.getByRole('rowheader')).toHaveTextContent('Fri, Nov 13');
     expect(screen.getByText('Reserved').parentElement).toHaveAttribute('data-color', 'error');
     expect(screen.getByText('customer-1')).toHaveAttribute('title', 'customer-1');
-    const icon = screen.getByRole('button', { name: /^Acciones del turno Fri, Nov 13/ }).querySelector('svg');
+    const icon = screen.getByRole('button', { name: /^Actions for Fri, Nov 13/ }).querySelector('svg');
     expect(icon).toHaveAttribute('viewBox', '0 0 4 16');
     expect(icon?.querySelectorAll('path')).toHaveLength(3);
     const tableColumns = table.querySelectorAll('col');
@@ -59,7 +59,7 @@ describe('AdminDashboardClient', () => {
     const dialog = await openCancelDialog(user);
     expect(dialog).toHaveAttribute('data-variant', 'destructive');
     expect(apiService.cancelAppointment).not.toHaveBeenCalled();
-    await user.click(within(dialog).getByRole('button', { name: 'No, volver' }));
+    await user.click(within(dialog).getByRole('button', { name: 'Go back' }));
     await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
     expect(apiService.cancelAppointment).not.toHaveBeenCalled();
   });
@@ -70,27 +70,28 @@ describe('AdminDashboardClient', () => {
     vi.mocked(apiService.cancelAppointment).mockReturnValue(new Promise(resolve => { finishCancellation = resolve; }));
     renderDashboard();
     const dialog = await openCancelDialog(user);
-    await user.click(within(dialog).getByRole('button', { name: 'Si, cancelar' }));
+    await user.click(within(dialog).getByRole('button', { name: 'Yes, cancel' }));
 
     expect(apiService.cancelAppointment).toHaveBeenCalledExactlyOnceWith('appointment-1', 'admin-token');
     expect(screen.getByRole('table')).toHaveAttribute('aria-busy', 'true');
-    expect(screen.getByRole('button', { name: /^Acciones del turno/ })).toBeDisabled();
-    expect(screen.getByText(/Procesando cancelacion administrativa/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /^Actions for/ })).toBeDisabled();
+    expect(screen.getByRole('progressbar', { name: 'Cancelling appointment' })).toBeInTheDocument();
+    expect(screen.getByText('Cancelling appointment...')).toBeInTheDocument();
 
-    await act(async () => { finishCancellation({ message: 'Espacio liberado' }); });
-    expect(screen.getByText('Turno cancelado por administracion. Espacio liberado')).toBeInTheDocument();
+    await act(async () => { finishCancellation({ message: 'Slot released' }); });
+    expect(screen.getByText('Appointment cancelled by admin. Slot released')).toBeInTheDocument();
     expect(screen.getByRole('table')).toHaveAttribute('aria-busy', 'false');
-    expect(screen.getByRole('button', { name: /^Acciones del turno/ })).toBeEnabled();
+    expect(screen.getByRole('button', { name: /^Actions for/ })).toBeEnabled();
   });
 
   it('shows API errors through the DS Toast and allows retry', async () => {
     const user = userEvent.setup();
-    vi.mocked(apiService.cancelAppointment).mockRejectedValue(new Error('No se pudo cancelar'));
+    vi.mocked(apiService.cancelAppointment).mockRejectedValue(new Error('Unable to cancel'));
     renderDashboard();
     const dialog = await openCancelDialog(user);
-    await user.click(within(dialog).getByRole('button', { name: 'Si, cancelar' }));
-    expect(await screen.findByRole('alert')).toHaveTextContent('No se pudo cancelar');
-    expect(screen.getByRole('button', { name: /^Acciones del turno/ })).toBeEnabled();
+    await user.click(within(dialog).getByRole('button', { name: 'Yes, cancel' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('Unable to cancel');
+    expect(screen.getByRole('button', { name: /^Actions for/ })).toBeEnabled();
   });
 
   it.each(['AVAILABLE', 'HOLD', 'NO_APPOINTMENT'] as const)('disables force cancellation for %s', async (state) => {
@@ -101,8 +102,8 @@ describe('AdminDashboardClient', () => {
       appointment: state === 'NO_APPOINTMENT' || state === 'AVAILABLE' ? null : reservedSlot.appointment,
     };
     renderDashboard([slot]);
-    await user.click(screen.getByRole('button', { name: /^Acciones del turno/ }));
-    const cancel = screen.getByRole('menuitem', { name: 'Forzar cancelacion' });
+    await user.click(screen.getByRole('button', { name: /^Actions for/ }));
+    const cancel = screen.getByRole('menuitem', { name: 'Force cancellation' });
     expect(cancel).toHaveAttribute('aria-disabled', 'true');
     await user.click(cancel);
     expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument();
@@ -112,10 +113,10 @@ describe('AdminDashboardClient', () => {
   it('supports keyboard opening and Escape with focus restoration', async () => {
     const user = userEvent.setup();
     renderDashboard();
-    const trigger = screen.getByRole('button', { name: /^Acciones del turno/ });
+    const trigger = screen.getByRole('button', { name: /^Actions for/ });
     trigger.focus();
     await user.keyboard('{ArrowDown}');
-    const action = await screen.findByRole('menuitem', { name: 'Forzar cancelacion' });
+    const action = await screen.findByRole('menuitem', { name: 'Force cancellation' });
     await waitFor(() => expect(action).toHaveFocus());
     await user.keyboard('{Escape}');
     await waitFor(() => expect(screen.queryByRole('menu')).not.toBeInTheDocument());
@@ -131,5 +132,20 @@ describe('AdminDashboardClient', () => {
     expect(screen.getByText('Active')).toBeInTheDocument();
     expect(screen.queryByText('customer-1')).not.toBeInTheDocument();
     expect(apiService.cancelAppointment).not.toHaveBeenCalled();
+  });
+
+  it('offers Retry after a network failure and keeps the table data until recovery', async () => {
+    const user = userEvent.setup();
+    vi.mocked(apiService.getAvailableSlots)
+      .mockRejectedValueOnce(new Error('Network down'))
+      .mockResolvedValueOnce([reservedSlot]);
+    renderDashboard();
+    await waitFor(() => expect(screen.getByText(/Connection lost/)).toBeInTheDocument(), { timeout: 4000 });
+    expect(screen.getByText('customer-1')).toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: 'Retry' }));
+    await waitFor(() => expect(apiService.getAvailableSlots).toHaveBeenCalledTimes(2));
+    expect(screen.queryByText(/Connection lost/)).not.toBeInTheDocument();
+    expect(screen.getByText('customer-1')).toBeInTheDocument();
   });
 });

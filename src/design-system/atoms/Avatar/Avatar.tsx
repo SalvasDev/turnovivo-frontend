@@ -21,7 +21,7 @@ export function Avatar({
     <span
       className={[styles.avatar, className].filter(Boolean).join(' ')}
       role={decorative ? undefined : 'img'}
-      aria-label={decorative ? undefined : label?.trim() || words.join(' ') || 'Avatar de usuario'}
+      aria-label={decorative ? undefined : label?.trim() || words.join(' ') || 'User avatar'}
       aria-hidden={decorative ? true : undefined}
       data-variant={variant}
     >

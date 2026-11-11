@@ -1,24 +1,31 @@
 import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { apiService } from '@/services/api';
+import { ApiError, apiService } from '@/services/api';
 import { useAuth } from '@/context/AuthContext';
 import LoginPage from './page';
 
+const mockedSearchParams = vi.hoisted(() => ({ value: new URLSearchParams() }));
+
 vi.mock('next/navigation', () => ({
-  useSearchParams: () => new URLSearchParams(),
+  useSearchParams: () => mockedSearchParams.value,
 }));
 
 vi.mock('@/context/AuthContext', () => ({ useAuth: vi.fn() }));
-vi.mock('@/services/api', () => ({ apiService: { login: vi.fn() } }));
+vi.mock('@/services/api', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/services/api')>();
+  return { ...actual, apiService: { login: vi.fn() } };
+});
 
 describe('LoginPage', () => {
   const login = vi.fn();
+  const clearSession = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockedSearchParams.value = new URLSearchParams();
     vi.mocked(useAuth).mockReturnValue({
-      user: null, token: null, loading: false, login, logout: vi.fn(),
+      user: null, token: null, loading: false, login, clearSession, logout: vi.fn(),
     });
   });
 
@@ -36,6 +43,43 @@ describe('LoginPage', () => {
     expect(screen.getByLabelText(/^Password/)).toBeRequired();
     expect(screen.getByRole('link', { name: 'Sign up' })).toHaveAttribute('href', '/register');
     expect(screen.getByRole('link', { name: 'TurnoVivo home' })).toHaveAttribute('href', '/');
+  });
+
+  it('clears an expired session and explains that sign-in is required', () => {
+    mockedSearchParams.value = new URLSearchParams('sessionExpired=1&next=%2Fadmin');
+    render(<LoginPage />);
+
+    expect(screen.getByRole('status')).toHaveTextContent('Your session expired. Sign in to continue.');
+    expect(clearSession).toHaveBeenCalledOnce();
+  });
+
+  it('shows email and password errors when leaving invalid fields', async () => {
+    const user = userEvent.setup();
+    render(<LoginPage />);
+
+    const email = screen.getByRole('textbox', { name: 'Email' });
+    await user.type(email, 'not-an-email');
+    await user.tab();
+    expect(await screen.findByText('Enter a valid email address.')).toBeInTheDocument();
+    expect(email).toHaveAttribute('aria-invalid', 'true');
+
+    const password = screen.getByLabelText(/^Password/);
+    await user.click(password);
+    await user.tab();
+    expect(await screen.findByText('Enter your password.')).toBeInTheDocument();
+    expect(password).toHaveAttribute('aria-invalid', 'true');
+    expect(apiService.login).not.toHaveBeenCalled();
+  });
+
+  it('shows inline required errors instead of submitting empty fields to the browser or API', async () => {
+    const user = userEvent.setup();
+    render(<LoginPage />);
+
+    await user.click(screen.getByRole('button', { name: 'Sign in' }));
+
+    expect(await screen.findByText('Enter your email address.')).toBeInTheDocument();
+    expect(screen.getByText('Enter your password.')).toBeInTheDocument();
+    expect(apiService.login).not.toHaveBeenCalled();
   });
 
   it('blocks duplicate submissions and allows retry after an API error', async () => {
@@ -59,14 +103,36 @@ describe('LoginPage', () => {
     expect(apiService.login).toHaveBeenCalledTimes(1);
     expect(apiService.login).toHaveBeenCalledWith('test@example.com', 'test-password');
 
-    await act(async () => { rejectLogin(new Error('Invalid credentials')); });
+    await act(async () => { rejectLogin(new ApiError('Invalid credentials', 401)); });
 
     expect(screen.getByRole('alert')).toHaveTextContent('Invalid credentials');
-    expect(email).toHaveAttribute('aria-invalid', 'true');
+    expect(email).not.toHaveAttribute('aria-invalid', 'true');
     expect(password).toHaveAttribute('aria-invalid', 'true');
-    expect(email).toHaveAccessibleDescription('Invalid credentials');
+    expect(password).toHaveAccessibleDescription('Check your email and password, then try again.');
     expect(screen.getByRole('button', { name: 'Sign in' })).toBeEnabled();
     expect(email).not.toHaveAttribute('readonly');
+  });
+
+  it('lets the user fix the password and sign in after a failed attempt', async () => {
+    const accessToken = `header.${btoa(JSON.stringify({ role: 'CLIENT' }))}.signature`;
+    vi.mocked(apiService.login)
+      .mockRejectedValueOnce(new ApiError('Invalid credentials', 401))
+      .mockResolvedValueOnce({ accessToken });
+    const user = userEvent.setup();
+    render(<LoginPage />);
+
+    await user.type(screen.getByRole('textbox', { name: 'Email' }), 'test@example.com');
+    await user.type(screen.getByLabelText(/^Password/), 'wrong-password');
+    await user.click(screen.getByRole('button', { name: 'Sign in' }));
+    expect(await screen.findByRole('alert')).toHaveTextContent('Invalid credentials');
+
+    await user.clear(screen.getByLabelText(/^Password/));
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    await user.type(screen.getByLabelText(/^Password/), 'password123');
+    await user.click(screen.getByRole('button', { name: 'Sign in' }));
+
+    expect(apiService.login).toHaveBeenLastCalledWith('test@example.com', 'password123');
+    expect(login).toHaveBeenCalledWith(accessToken);
   });
 
   it('passes a successful access token to the existing auth context', async () => {

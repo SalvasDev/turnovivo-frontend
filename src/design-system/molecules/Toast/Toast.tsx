@@ -2,15 +2,15 @@
 
 import { Button } from '../../atoms/Button';
 import { Icon, type IconName } from '../../atoms/Icon';
+import { Spinner } from '../../atoms/Spinner';
 import type { ToastProps, ToastVariant } from './Toast.types';
 import styles from './Toast.module.css';
 
-const icons: Record<ToastVariant, IconName> = {
+const icons: Record<Exclude<ToastVariant, 'loading'>, IconName> = {
   success: 'check',
   info: 'info',
-  warning: 'info',
-  error: 'close',
-  loading: 'autorenew',
+  warning: 'warning',
+  error: 'errorOutline',
 };
 
 export function Toast({
@@ -19,7 +19,7 @@ export function Toast({
   showIcon = true,
   isDismissible = true,
   onDismiss,
-  dismissLabel = 'Cerrar notificacion',
+  dismissLabel = 'Dismiss notification',
   className,
   ...props
 }: ToastProps) {
@@ -34,13 +34,15 @@ export function Toast({
     >
       {showIcon && (
         <span className={styles.icon} aria-hidden="true">
-          <Icon name={icons[variant]} />
+          {variant === 'loading' ? <Spinner size="small" /> : <Icon name={icons[variant]} />}
         </span>
       )}
       <span className={styles.message}>{children}</span>
       {isDismissible && onDismiss && (
         <Button
+          iconOnly
           variant="text"
+          size="small"
           className={styles.dismiss}
           aria-label={dismissLabel}
           onPress={onDismiss}

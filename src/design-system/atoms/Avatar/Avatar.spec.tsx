@@ -5,7 +5,7 @@ import { Avatar } from './Avatar';
 describe('Avatar', () => {
   it('renders the default person icon with an accessible label', () => {
     const { container } = render(<Avatar />);
-    expect(screen.getByRole('img', { name: 'Avatar de usuario' })).toHaveAttribute('data-variant', 'default');
+    expect(screen.getByRole('img', { name: 'User avatar' })).toHaveAttribute('data-variant', 'default');
     expect(container.querySelector('svg')).toHaveAttribute('aria-hidden', 'true');
   });
 

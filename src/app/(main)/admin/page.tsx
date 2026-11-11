@@ -2,7 +2,6 @@ import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { apiService } from '@/services/api';
 
-import { AppointmentSlot } from '@/types';
 import { DEFAULT_DEMO_PATH, DEFAULT_DEMO_SLUG } from '@/config/app';
 import styles from './page.module.css';
 import { AdminDashboardClient } from '@/components/admin-dashboard-client';
@@ -28,23 +27,17 @@ export default async function AdminPage() {
     redirect(DEFAULT_DEMO_PATH);
   }
 
-  let slots: AppointmentSlot[] = [];
-  let businessId = '';
-  
-  try {
-    const business = await apiService.getBusinessBySlug(DEFAULT_DEMO_SLUG);
-    businessId = business.id;
-    slots = await apiService.getAvailableSlots(businessId);
-  } catch {
-    slots = [];
-  }
+  // Failures reach the route error boundary instead of looking like an empty agenda.
+  const business = await apiService.getBusinessBySlug(DEFAULT_DEMO_SLUG);
+  const businessId = business.id;
+  const slots = await apiService.getAvailableSlots(businessId);
 
   return (
     <section className={styles.page} aria-labelledby="admin-page-title">
       <div className={styles.content}>
         <header className={styles.header}>
-          <h1 id="admin-page-title" className={styles.title} lang="en">Operations console</h1>
-          <p className={styles.description}>Cancela citas en tiempo real para observar el comportamiento de la cascada de Redis.</p>
+          <h1 id="admin-page-title" className={styles.title}>Operations console</h1>
+          <p className={styles.description}>Cancel appointments in real time to watch the Redis waitlist cascade.</p>
         </header>
         <AdminDashboardClient initialSlots={slots} businessId={businessId} token={token} />
       </div>

@@ -1,6 +1,6 @@
-@layer reset, ds;
+@layer reset, ds.atoms, ds.molecules, ds.layouts;
 
-@layer ds {
+@layer ds.atoms {
   .divider {
     box-sizing: border-box;
     inline-size: 100%;

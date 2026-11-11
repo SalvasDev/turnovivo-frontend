@@ -9,9 +9,11 @@ export function HomeActions() {
   const router = useRouter();
 
   return (
-    <div className={styles.actions} lang="en">
+    <div className={styles.actions}>
       <Button
         variant="filled"
+        lockOnPress
+        pendingLabel="Opening demo"
         onPress={() => router.push(DEFAULT_DEMO_PATH)}
       >
         Start demo
@@ -19,6 +21,8 @@ export function HomeActions() {
       <Button
         variant="outlined"
         startIcon={<Icon name="add" />}
+        lockOnPress
+        pendingLabel="Opening registration"
         onPress={() => router.push('/register')}
       >
         Create test account

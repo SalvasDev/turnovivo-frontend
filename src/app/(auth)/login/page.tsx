@@ -2,12 +2,13 @@
 
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { Suspense, useState } from 'react';
+import { Suspense, useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
-import { apiService } from '@/services/api';
+import { ApiError, apiService } from '@/services/api';
 import { DEFAULT_DEMO_PATH } from '@/config/app';
-import { Button, Input } from '@/design-system';
+import { Button, Input, Spinner } from '@/design-system';
 import styles from '@/design-system/layouts/AuthLayout.module.css';
+import { getEmailError } from '../validation';
 
 function getErrorMessage(err: unknown, fallback: string) {
   if (err instanceof Error && err.message) {
@@ -16,23 +17,61 @@ function getErrorMessage(err: unknown, fallback: string) {
   return fallback;
 }
 
+/** Only same-origin paths are allowed, preventing open redirects through `?next=`. */
+function getSafeNextPath(value: string | null) {
+  if (!value || !value.startsWith('/') || value.startsWith('//') || value.startsWith('/\\')) {
+    return null;
+  }
+  return value;
+}
+
+
 function LoginForm() {
   const searchParams = useSearchParams();
+  const sessionExpired = searchParams.get('sessionExpired') === '1';
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   
-  const { login } = useAuth();
-  const nextPath = searchParams.get('next') || DEFAULT_DEMO_PATH;
+  const { login, clearSession } = useAuth();
+  const requestedPath = getSafeNextPath(searchParams.get('next'));
+  const nextPath = requestedPath ?? DEFAULT_DEMO_PATH;
   const emailInputId = 'login-email';
   const passwordInputId = 'login-password';
   const errorId = 'login-error-message';
 
+  useEffect(() => {
+    if (sessionExpired) clearSession();
+  }, [clearSession, sessionExpired]);
+
+  // A server error marks the fields invalid, which blocks native submit; editing clears it.
+  const handleEmailChange = (value: string) => {
+    setEmail(value);
+    setError(null);
+    setEmailError(null);
+  };
+  const handlePasswordChange = (value: string) => {
+    setPassword(value);
+    setError(null);
+    setPasswordError(null);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (submitting) return;
-    
+
+    const nextEmailError = getEmailError(email);
+    const nextPasswordError = password ? null : 'Enter your password.';
+    setEmailError(nextEmailError);
+    setPasswordError(nextPasswordError);
+    if (nextEmailError || nextPasswordError) {
+      setError(null);
+      return;
+    }
+
     setError(null);
     setSubmitting(true);
 
@@ -41,7 +80,7 @@ function LoginForm() {
       login(data.accessToken);
 
       let target = nextPath;
-      if (!searchParams.get('next')) {
+      if (!requestedPath) {
         try {
           const base64 = data.accessToken.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
           const payload = JSON.parse(window.atob(base64));
@@ -49,23 +88,25 @@ function LoginForm() {
             target = '/super-admin';
           }
         } catch {
-          // Si el token no es decodificable, usamos el destino por defecto.
+          // An undecodable token falls back to the default destination.
         }
       }
 
+      // Stays pending until navigation so the form cannot be submitted twice.
       setTimeout(() => {
         window.location.href = target;
       }, 150);
-      
     } catch (err: unknown) {
-      setError(getErrorMessage(err, 'Error al iniciar sesión.'));
-    } finally {
+      setError(getErrorMessage(err, 'Unable to sign in. Please try again.'));
+      setPasswordError(err instanceof ApiError && err.status === 401
+        ? 'Check your email and password, then try again.'
+        : null);
       setSubmitting(false);
     }
   };
 
   return (
-    <div className={styles.page} lang="en">
+    <div className={styles.page}>
       <section className={styles.card} aria-labelledby="login-title">
         <Link href="/" className={styles.brand} aria-label="TurnoVivo home">TURNOVIVO</Link>
         <header className={styles.header}>
@@ -73,13 +114,19 @@ function LoginForm() {
           <p className={styles.description}>Welcome back. Enter your details to continue.</p>
         </header>
 
+        {sessionExpired && (
+          <div role="status" className={styles.sessionExpired}>
+            Your session expired. Sign in to continue.
+          </div>
+        )}
+
         {error && (
           <div id={errorId} role="alert" className={styles.error}>
             {error}
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className={styles.form}
+        <form noValidate onSubmit={handleSubmit} className={styles.form}
           aria-labelledby="login-title" aria-describedby={error ? errorId : undefined}
           aria-busy={submitting}>
           <Input
@@ -89,12 +136,13 @@ function LoginForm() {
             type="email"
             isRequired
             value={email}
-            onChange={setEmail}
+            onChange={handleEmailChange}
             placeholder="name@company.com"
             autoComplete="email"
             isReadOnly={submitting}
-            isInvalid={!!error}
-            aria-describedby={error ? errorId : undefined}
+            isInvalid={!!emailError}
+            errorMessage={emailError}
+            onBlur={() => setEmailError(getEmailError(email))}
           />
           <Input
             id={passwordInputId}
@@ -103,17 +151,20 @@ function LoginForm() {
             type="password"
             isRequired
             value={password}
-            onChange={setPassword}
+            onChange={handlePasswordChange}
             placeholder="your password"
             autoComplete="current-password"
             isReadOnly={submitting}
-            isInvalid={!!error}
-            aria-describedby={error ? errorId : undefined}
+            isInvalid={!!passwordError}
+            errorMessage={passwordError}
+            onBlur={() => setPasswordError(password ? null : 'Enter your password.')}
           />
           <Button
             type="submit"
             variant="filled"
             isDisabled={submitting}
+            isPending={submitting}
+            pendingLabel="Signing in"
             className={styles.submit}
           >
             {submitting ? 'Signing in...' : 'Sign in'}
@@ -133,7 +184,7 @@ function LoginForm() {
 
 export default function LoginPage() {
   return (
-    <Suspense fallback={<div className={styles.page} role="status" aria-label="Loading sign in" />}>
+    <Suspense fallback={<div className={styles.page} role="status" aria-label="Loading sign in"><Spinner size="large" /></div>}>
       <LoginForm />
     </Suspense>
   );

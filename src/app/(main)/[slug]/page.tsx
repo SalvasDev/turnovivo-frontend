@@ -1,5 +1,5 @@
 
-import { apiService } from '@/services/api';
+import { ApiError, apiService } from '@/services/api';
 import { AppointmentGrid } from '@/components/appointment-grid';
 import { notFound, redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
@@ -35,8 +35,10 @@ export default async function BusinessPage({ params }: PageProps) {
   try {
     business = await apiService.getBusinessBySlug(slug);
     availableSlots = await apiService.getAvailableSlots(business.id);
-  } catch {
-    return notFound();
+  } catch (error) {
+    // Only a missing business is a 404; outages bubble up to the route error boundary.
+    if (error instanceof ApiError && error.status === 404) notFound();
+    throw error;
   }
 
   return (
@@ -52,6 +54,7 @@ export default async function BusinessPage({ params }: PageProps) {
             initialSlots={availableSlots} 
             businessId={business.id} 
             serverUserId={currentUserId} 
+            initialLoadComplete
           />
         </section>
       </div>

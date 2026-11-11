@@ -1,19 +1,10 @@
 'use client';
 
-import type { ReactNode } from 'react';
 import { Dialog, Heading, Modal, ModalOverlay } from 'react-aria-components';
 import { Button } from '../../atoms/Button';
 import { Icon } from '../../atoms/Icon';
+import type { FormModalProps } from './FormModal.types';
 import styles from './FormModal.module.css';
-
-export interface FormModalProps {
-  isOpen: boolean;
-  title: string;
-  children: ReactNode;
-  onClose: () => void;
-  isPending?: boolean;
-  closeLabel?: string;
-}
 
 export function FormModal({ isOpen, title, children, onClose, isPending = false, closeLabel = 'Close dialog' }: FormModalProps) {
   return (
@@ -28,11 +19,13 @@ export function FormModal({ isOpen, title, children, onClose, isPending = false,
         <Dialog className={styles.dialog}>
           <div className={styles.header}>
             <Heading slot="title" className={styles.title}>{title}</Heading>
-            <Button variant="text" className={styles.close} aria-label={closeLabel} isDisabled={isPending} onPress={onClose}>
+            <Button iconOnly variant="text" size="small" className={styles.close} aria-label={closeLabel} isDisabled={isPending} onPress={onClose}>
               <span title={closeLabel}><Icon name="close" /></span>
             </Button>
           </div>
-          {children}
+          <div className={styles.body} aria-busy={isPending || undefined}>
+            {children}
+          </div>
         </Dialog>
       </Modal>
     </ModalOverlay>

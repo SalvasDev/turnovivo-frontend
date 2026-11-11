@@ -26,8 +26,9 @@
   inset-inline-start: var(--space-8);
   padding: var(--space-12) var(--space-16);
   border-radius: var(--radius-4);
-  background: var(--surface-brand-primary-dark);
-  color: var(--text-inverse);
+  /* Inverts the page colors so contrast holds in both themes. */
+  background: var(--text-primary);
+  color: var(--surface-primary);
   transform: translateY(-200%);
 }
 

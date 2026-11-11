@@ -23,19 +23,26 @@ export function validateAdminPassword(value: string) {
 export function CreateAdminModal({ isOpen, onClose, onSubmit }: CreateAdminModalProps) {
   const [values, setValues] = useState<AdminFormValues>({ email: '', password: '' });
   const [pending, setPending] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [passwordError, setPasswordError] = useState<string | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (pending) return;
     const passwordError = validateAdminPassword(values.password);
-    if (passwordError) { setError(passwordError); return; }
+    if (passwordError) { setPasswordError(passwordError); return; }
     setPending(true);
-    setError(null);
+    setEmailError(null);
+    setPasswordError(null);
+    setFormError(null);
     try {
       await onSubmit({ email: values.email.trim(), password: values.password });
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Could not create the administrator.');
+      const message = error instanceof Error ? error.message : 'Could not create the administrator.';
+      if (/e-?mail/i.test(message)) setEmailError(message);
+      else if (/password/i.test(message)) setPasswordError(message);
+      else setFormError(message);
     } finally {
       setPending(false);
     }
@@ -43,10 +50,10 @@ export function CreateAdminModal({ isOpen, onClose, onSubmit }: CreateAdminModal
 
   return (
     <FormModal isOpen={isOpen} title="New admin" onClose={onClose} isPending={pending}>
-      <form className={styles.form} aria-label="New admin" aria-busy={pending} onSubmit={handleSubmit} lang="en">
-        {error && <Toast variant="error" isDismissible={false}>{error}</Toast>}
-        <Input autoFocus label="Email" name="email" type="email" isRequired value={values.email} onChange={email => setValues(previous => ({ ...previous, email }))} placeholder="admin@company.com" autoComplete="email" isReadOnly={pending} />
-        <Input label="Password" name="password" type="password" isRequired value={values.password} onChange={password => setValues(previous => ({ ...previous, password }))} placeholder="your password" autoComplete="new-password" minLength={8} validate={validateAdminPassword} helperText="At least 8 characters, including one number" isReadOnly={pending} />
+      <form className={styles.form} aria-label="New admin" aria-busy={pending} onSubmit={handleSubmit}>
+        {formError && <Toast variant="error" isDismissible={false}>{formError}</Toast>}
+        <Input autoFocus label="Email" name="email" type="email" isRequired value={values.email} onChange={email => { setValues(previous => ({ ...previous, email })); setEmailError(null); setFormError(null); }} placeholder="admin@company.com" autoComplete="email" isReadOnly={pending} isInvalid={!!emailError} errorMessage={emailError} />
+        <Input label="Password" name="password" type="password" isRequired value={values.password} onChange={password => { setValues(previous => ({ ...previous, password })); setPasswordError(null); setFormError(null); }} placeholder="your password" autoComplete="new-password" minLength={8} validate={validateAdminPassword} helperText="At least 8 characters, including one number" isReadOnly={pending} isInvalid={!!passwordError} errorMessage={passwordError} />
         <Button type="submit" className={styles.submit} isDisabled={pending} isPending={pending}>
           {pending ? 'Creating admin...' : 'Create admin'}
         </Button>

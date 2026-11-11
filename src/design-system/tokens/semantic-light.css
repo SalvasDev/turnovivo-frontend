@@ -1,8 +1,12 @@
 :root {
+  color-scheme: light;
   --text-primary: var(--neutral-100);
   --text-secondary: var(--neutral-80);
   --text-tertiary: var(--neutral-70);
   --text-inverse: var(--neutral-0);
+  /* Theme-independent: solid and accent fills keep the same hue in both themes. */
+  --text-on-solid: var(--neutral-0);
+  --text-on-accent: var(--neutral-100);
   --text-brand-primary: var(--color-brand-primary);
   --text-brand-bright: var(--blue-50);
   --text-link-default: var(--neutral-100);

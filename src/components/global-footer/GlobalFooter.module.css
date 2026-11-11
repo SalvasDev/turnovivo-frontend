@@ -16,3 +16,13 @@
 .footer span {
   margin-inline: var(--space-4);
 }
+
+.link {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: var(--space-4);
+}
+
+.link:hover {
+  color: var(--text-link-hover);
+}

@@ -19,7 +19,7 @@ describe('Toast', () => {
     const user = userEvent.setup();
     const onDismiss = vi.fn();
     render(<Toast onDismiss={onDismiss}>Appointment in line</Toast>);
-    const close = screen.getByRole('button', { name: 'Cerrar notificacion' });
+    const close = screen.getByRole('button', { name: 'Dismiss notification' });
     await user.click(close);
     expect(onDismiss).toHaveBeenCalledTimes(1);
     close.focus();

@@ -36,6 +36,7 @@ describe('GlobalHeader', () => {
     mockedUsePathname.mockReset();
     mockedUseAuth.mockReset();
     delete document.documentElement.dataset.theme;
+    localStorage.clear();
   });
 
   it('muestra menu admin y logout para usuario ADMIN', async () => {
@@ -125,11 +126,23 @@ describe('GlobalHeader', () => {
     render(<GlobalHeader />);
 
     expect(screen.getByRole('banner')).toBeInTheDocument();
-    expect(screen.getByRole('link', { name: /ir al inicio/i })).toHaveAttribute('href', '/');
+    expect(screen.getByRole('link', { name: 'TurnoVivo home' })).toHaveAttribute('href', '/');
     expect(screen.getByRole('link', { name: 'GitHub' })).toBeInTheDocument();
-    await user.click(screen.getByRole('button', { name: 'Activar tema oscuro' }));
+    await user.click(screen.getByRole('button', { name: 'Switch to dark theme' }));
     expect(document.documentElement).toHaveAttribute('data-theme', 'dark');
-    await user.click(screen.getByRole('button', { name: 'Activar tema claro' }));
+    expect(localStorage.getItem('turnovivo-theme')).toBe('dark');
+    await user.click(screen.getByRole('button', { name: 'Switch to light theme' }));
     expect(document.documentElement).toHaveAttribute('data-theme', 'light');
+    expect(localStorage.getItem('turnovivo-theme')).toBe('light');
+  });
+
+  it('reflects a theme applied before hydration by the init script', () => {
+    document.documentElement.dataset.theme = 'dark';
+    mockedUsePathname.mockReturnValue('/');
+    mockedUseAuth.mockReturnValue({ loading: false, logout: vi.fn(), user: null });
+
+    render(<GlobalHeader />);
+
+    expect(screen.getByRole('button', { name: 'Switch to light theme' })).toBeInTheDocument();
   });
 });

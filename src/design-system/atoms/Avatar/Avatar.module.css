@@ -1,3 +1,6 @@
+@layer reset, ds.atoms, ds.molecules, ds.layouts;
+
+@layer ds.atoms {
 .avatar {
   display: inline-grid;
   place-items: center;
@@ -5,7 +8,7 @@
   inline-size: var(--size-32);
   block-size: var(--size-32);
   overflow: hidden;
-  border: 4px solid var(--border-tertiary);
+  border: var(--size-4) solid var(--border-tertiary);
   border-radius: var(--radius-radius-full);
   background: var(--neutral-30);
   color: var(--icon-tertiary);
@@ -30,5 +33,6 @@
 
 :global([data-theme='dark']) .avatar {
   background: var(--surface-tertiary);
-  border: 4px solid var(--border-secondary);
+  border: var(--size-4) solid var(--border-secondary);
+}
 }

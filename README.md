@@ -1,146 +1,130 @@
-# TurnoVivo Frontend
+# TurnoVivo · Frontend
 
-Frontend de TurnoVivo construido con Next.js (App Router), React 19 y TypeScript.
+Real-time appointment booking with a smart waitlist, built on the **Ocean Design System** — a token-driven
+component library I designed in Figma and implemented from scratch.
 
-## Requisitos previos
+> Portfolio MVP. The goal is to show product thinking, a production-grade design system implementation and
+> accessible, resilient UI states — not feature breadth.
 
-1. Node.js 20 o superior.
-2. npm 10 o superior.
-3. Backend de TurnoVivo corriendo en localhost:3000.
+**Live design system:** `/design-system` (public, no sign-in needed).
 
-Referencia de backend:
-[turnovivo-backend/README.md](../turnovivo-backend/README.md)
+## Highlights
 
-## Instalación
+- **Design system from Figma to code** — three token tiers (primitive → semantic → component), CSS Modules,
+  cascade layers (`ds.atoms < ds.molecules < ds.layouts`) so app styles override the DS predictably.
+- **Accessibility built in** — React Aria primitives, visible focus, `forced-colors` support, reduced motion,
+  semantic live regions, WCAG AA contrast verified in both themes, automated axe tests and `jsx-a11y` lint.
+- **Resilient UI states** — every async action shows a spinner and locks until it settles (no double
+  submissions), route-level loading and error boundaries, offline notice when polling fails, empty vs error
+  states kept distinct.
+- **Light and dark themes** — persisted choice applied before first paint (no flash), `color-scheme` aware.
+- **Quality gates in CI** — ESLint, Stylelint token enforcement, type check, 200+ tests, production build.
 
-Desde la carpeta frontend:
+## Stack
 
-cd turnovivo-frontend
+| Layer | Tools |
+| --- | --- |
+| Framework | Next.js 16 (App Router, Server Components), React 19, TypeScript strict |
+| UI | React Aria Components, CSS Modules, design tokens as CSS custom properties |
+| Testing | Vitest, Testing Library, axe-core |
+| Quality | ESLint (Next + jsx-a11y recommended), Stylelint, GitHub Actions |
+| Backend (separate repo) | Spring Boot, Spring Security + JWT, PostgreSQL, Redis |
+
+## Design system
+
+```
+src/design-system/
+├── tokens/        primitives · color aliases · typography · dimensions · effects
+│                  semantic-light · semantic-dark · component tokens
+├── icons/         typed SVG registry
+├── atoms/         Button · Input · Select · Badge · Avatar · Icon · Spinner · Divider
+├── molecules/     Card · DatePicker · Table · Toast · ConfirmDialog · FormModal
+└── layouts/       AuthLayout
+```
+
+Rules the codebase follows (and CI enforces):
+
+- **No raw values outside `tokens/`.** Stylelint rejects hex colors, named colors, `rgb()/hsl()` and `px`.
+- **States come from React Aria data attributes** — `[data-hovered]`, `[data-pressed]`, `[data-disabled]`,
+  `[data-pending]`, `[data-focus-visible]`.
+- **Components expose CSS custom properties as their public styling API** (e.g. `--button-solid`,
+  `--button-border-width`) instead of accepting arbitrary class overrides.
+- **Async by default.** `Button` accepts an `onPress` that returns a promise; it locks itself and renders an
+  accessible progress indicator until the promise settles. `lockOnPress` keeps navigation buttons locked.
+
+```tsx
+<Button onPress={() => api.book(slotId)} pendingLabel="Booking">Reserve</Button>
+<Button iconOnly aria-label="Appointment actions"><Icon name="moreVertical" /></Button>
+```
+
+## Accessibility
+
+- Keyboard support and focus management through React Aria (menus, dialogs, date picker, select).
+- Dialogs trap and restore focus; destructive confirmations use `alertdialog`.
+- Toasts: errors are `alert`, everything else `status`; polled lists do not spam screen readers.
+- Contrast measured in the browser for every button variant and text element in both themes (WCAG AA).
+- `prefers-reduced-motion` slows spinners instead of hiding progress; `forced-colors` keeps borders visible.
+- Automated: `src/a11y.spec.tsx` runs axe against every component state, open dialogs, auth pages, the booking
+  agenda and the admin table.
+
+## Getting started
+
+Requirements: Node.js 20+ and the TurnoVivo backend running on `http://localhost:3000`.
+
+```bash
 npm install
+npm run dev:3001      # http://localhost:3001
+```
 
-## Arranque en desarrollo
+Optional `.env.local`:
 
-Este proyecto incluye dos scripts de desarrollo:
-
-1. Puerto por defecto (3000)
-npm run dev
-
-2. Puerto recomendado para evitar choque con backend (3001)
-npm run dev:3001
-
-Abrir en navegador:
-
-http://localhost:3001
-
-## Dependencia con el backend
-
-Para funcionamiento completo (login, registro, agenda, reservas) necesitas backend activo.
-
-Validación rápida:
-1. Backend arriba en localhost:3000
-2. Frontend arriba en localhost:3001
-3. Login funcional en /login
-
-## Configuración de API
-
-El servicio de API usa NEXT_PUBLIC_API_URL con fallback a http://localhost:3000 en:
-[src/services/api.ts](src/services/api.ts)
-
-Puedes agregar archivo .env.local en frontend con:
-
+```bash
 NEXT_PUBLIC_API_URL=http://localhost:3000
-
-Opcional para personalizar la demo sin tocar código:
-
 NEXT_PUBLIC_DEFAULT_BUSINESS_SLUG=barberia-premium
-NEXT_PUBLIC_DEFAULT_BUSINESS_NAME=Barberia Premium
+NEXT_PUBLIC_DEFAULT_BUSINESS_NAME="Barberia Premium"
+NEXT_PUBLIC_REPOSITORY_URL=https://github.com/<user>/<repo>
+```
 
-Nota importante:
-El frontend consume backend desde una sola capa centralizada en [src/services/api.ts](src/services/api.ts).
+The design system showcase (`/design-system`) works without the backend.
 
-## Scripts útiles
+### Demo accounts
 
-1. npm run dev
-2. npm run dev:3001
-3. npm run build
-4. npm run start
-5. npm run test
-6. npm run lint
+Password for all: `password123`
 
-## Flujo recomendado para desarrolladores nuevos
+| Role | Email | What to try |
+| --- | --- | --- |
+| Client | `cliente.real@turnovivo.com` | Book, join/leave the waitlist, cancel and watch the cascade |
+| Admin | `admin@turnovivo.com` | Force-cancel appointments from the operations console |
+| Super admin | `super.admin@turnovivo.com` | Create, edit and deactivate companies and admins |
 
-1. Levantar infraestructura y backend siguiendo:
-[turnovivo-backend/README.md](../turnovivo-backend/README.md)
-2. En otra terminal levantar frontend:
-cd turnovivo-frontend
-npm run dev:3001
-3. Abrir http://localhost:3001
+## Scripts
 
-## Demo en 5 minutos (portfolio)
+| Command | Purpose |
+| --- | --- |
+| `npm run dev:3001` | Development server on port 3001 |
+| `npm run build` / `npm start` | Production build and server |
+| `npm test` | Unit, integration and accessibility tests |
+| `npm run lint` | ESLint with the full `jsx-a11y` recommended set |
+| `npm run lint:css` | Stylelint token enforcement |
+| `npm run typecheck` | TypeScript without emitting |
 
-Objetivo:
-Que una persona externa pueda validar valor funcional y arquitectura sin conocer el código.
+## Project structure
 
-Checklist rápido:
-1. Backend activo en localhost:3000
-2. Frontend activo en localhost:3001
-3. Abrir http://localhost:3001
-4. Clic en "Entrar a la demo"
-5. Login con:
-	- Email: cliente.real@turnovivo.com
-	- Password: password123
+```
+src/
+├── app/
+│   ├── (main)/          home · [slug] booking · admin · super-admin · design-system
+│   │                    shared loading.tsx and error.tsx boundaries
+│   └── (auth)/          login · register
+├── components/          feature components (agenda, admin, super admin, header, showcase)
+├── context/             auth (cookie store), UI (toasts and confirm), theme
+├── design-system/       see above
+├── services/api.ts      single API layer; ApiError keeps HTTP status
+└── a11y.spec.tsx        axe suite
+```
 
-Flujo recomendado de validación:
-1. Reservar un turno disponible.
-2. Intentar reservar otro turno para validar regla de una cita activa.
-3. Liberar turno (cancelación) y observar actualización de grilla.
-4. Entrar a lista de espera en un turno ocupado y salir de la fila.
+## Troubleshooting
 
-Resultado esperado:
-1. Cambios visibles en tiempo real en tarjetas de slots.
-2. Mensajes de feedback consistentes (éxito/error/advertencia).
-3. Navegación estable entre home, login y agenda de demo.
-
-## Entregable sugerido para entrevista
-
-1. Compartir URL local o despliegue.
-2. Compartir este README con la sección "Demo en 5 minutos".
-3. Preparar explicación breve de arquitectura:
-	- Next.js App Router (UI)
-	- NestJS + Prisma (reglas y datos)
-	- Redis (eventos y estado efímero)
-
-## Script de demo para entrevista (2-3 minutos)
-
-Puedes decir algo como:
-
-1. "TurnoVivo es un MVP de agenda inteligente con flujo completo de reservas, lista de espera y cancelaciones en tiempo real."
-2. "La UI está en Next.js con App Router y el backend en NestJS con Prisma; Redis maneja estado efímero y la cascada de turnos."
-3. "La demo está pensada para mostrar criterio de producto y arquitectura: login, reservas, validaciones y feedback inmediato."
-4. "No está sobrecargado con CRUD innecesario; el foco es resolver el flujo central y dejar preparado el camino para multiempresa."
-5. "Si te interesa, te puedo mostrar cómo el seed y el polling mantienen la demo viva sin intervención manual."
-
-## Troubleshooting rápido
-
-1. Error de red en login o agenda
-	Verifica backend arriba en localhost:3000.
-
-2. Pantalla sin datos de slots
-	Verifica que backend tenga migraciones y seed aplicados.
-
-3. Puerto ocupado al iniciar frontend
-	Usa npm run dev:3001 para evitar conflictos.
-
-4. Token inválido o sesión rara
-	Limpia cookie turnovivo_token del navegador y vuelve a iniciar sesión.
-
-## Despliegue recomendado
-
-Referencia completa:
-[DEPLOYMENT.md](../DEPLOYMENT.md)
-
-Para frontend en producción:
-1. Define `NEXT_PUBLIC_API_URL` apuntando al backend público.
-2. Mantén `NEXT_PUBLIC_DEFAULT_BUSINESS_SLUG` y `NEXT_PUBLIC_DEFAULT_BUSINESS_NAME` si quieres personalizar la demo.
-3. Ejecuta `npm run build`.
-4. Arranca con `npm run start` o despliega en Vercel.
+- **Network error on login or agenda** — make sure the backend is running on port 3000.
+- **"Connection lost" notice** — polling failed; the UI keeps the last known data and retries automatically.
+- **Odd session state** — clear the `turnovivo_token` cookie and sign in again.
