@@ -18,7 +18,8 @@ component library I designed in Figma and implemented from scratch.
   submissions), route-level loading and error boundaries, offline notice when polling fails, empty vs error
   states kept distinct.
 - **Light and dark themes** — persisted choice applied before first paint (no flash), `color-scheme` aware.
-- **Mobile first** — the full booking flow works on a phone, 44px touch targets on days and slots, tables
+- **Mobile first** — the full booking flow works on a phone, 44px touch targets on calendar days, buttons
+  keep the DS sizes (48/40/32) with an invisible 48px touch area on compact ones, tables
   stack into cards under 640px, zero layout shift (CLS 0).
 - **Race-condition safe** — one request per action in the UI, newer availability requests cancel older ones,
   and two customers booking the same slot at once were verified to produce exactly one winner.

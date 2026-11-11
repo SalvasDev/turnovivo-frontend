@@ -22,7 +22,7 @@
   --size-40: 40px;
   --size-48: 48px;
   --size-64: 64px;
-  /* Minimum touch target (WCAG 2.5.5, Apple HIG). */
+  /* Calendar day touch target (WCAG 2.5.5); buttons use the DS scale (48 large) instead. */
   --size-touch-target: 44px;
   --space-0: 0px;
   --space-2: 2px;

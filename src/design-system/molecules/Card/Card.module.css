@@ -45,7 +45,6 @@
 .card .action {
   --button-border-width: calc(var(--size-2) / 2);
   inline-size: 100%;
-  min-block-size: var(--size-touch-target);
   margin-block-start: auto;
 }
 

@@ -86,15 +86,15 @@
     line-height: var(--line-height-16);
   }
 
-  /* Compact buttons keep their look but get an invisible 44px touch target. */
+  /* Compact buttons keep their look but get an invisible touch target of the large size (48px). */
   .button[data-size='small']::after,
   .button[data-icon-only][data-size='medium']::after {
     content: '';
     position: absolute;
     inset-block-start: 50%;
     inset-inline-start: 50%;
-    inline-size: max(100%, var(--size-touch-target));
-    block-size: max(100%, var(--size-touch-target));
+    inline-size: max(100%, var(--size-48));
+    block-size: max(100%, var(--size-48));
     translate: -50% -50%;
   }
 

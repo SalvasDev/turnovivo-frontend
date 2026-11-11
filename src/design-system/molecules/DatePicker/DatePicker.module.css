@@ -127,11 +127,11 @@
   line-height: var(--line-height-20);
 }
 
-/* Matches the 40px field visually while keeping a 44px touch target. */
+/* Matches the 40px field visually while keeping a 48px (large) touch target. */
 .picker .clearButton::after {
   content: '';
   position: absolute;
-  inset: calc((var(--size-40) - var(--size-touch-target)) / 2 - var(--button-border-width)) 0;
+  inset: calc((var(--size-40) - var(--size-48)) / 2 - var(--button-border-width)) 0;
 }
 
 .picker[data-state='resting'] .control {
