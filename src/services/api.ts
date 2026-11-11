@@ -1,4 +1,11 @@
-import { AppointmentSlot, Business } from '@/types';
+import type {
+  ApiMessage,
+  AppointmentSlot,
+  BookResponse,
+  Business,
+  LoginResponse,
+  RegisteredUser,
+} from '@/types';
 import Cookies from 'js-cookie';
 import {
   parseAccessToken,
@@ -17,11 +24,7 @@ let redirectingAfterExpiry = false;
 export const NETWORK_ERROR_MESSAGE = 'Unable to reach the service. Check your connection and try again.';
 export const INVALID_RESPONSE_MESSAGE = 'The service returned an unexpected response. Please try again.';
 
-type ExtendedRequestInit = RequestInit & {
-  next?: {
-    revalidate?: number;
-  };
-};
+export type { ApiMessage, BookResponse, LoginResponse, RegisteredUser } from '@/types';
 
 /** HTTP error that keeps the status so callers can tell "not found" apart from outages. */
 export class ApiError extends Error {
@@ -79,7 +82,7 @@ export function requireValid<T>(value: T | null): T {
   return value;
 }
 
-function withAuth(token: string, init?: ExtendedRequestInit): ExtendedRequestInit {
+function withAuth(token: string, init?: RequestInit): RequestInit {
   return {
     ...init,
     headers: {
@@ -87,19 +90,6 @@ function withAuth(token: string, init?: ExtendedRequestInit): ExtendedRequestIni
       Authorization: `Bearer ${token}`,
     },
   };
-}
-
-export interface LoginResponse {
-  accessToken: string;
-}
-
-export interface ApiMessage {
-  message?: string;
-}
-
-export interface BookResponse extends ApiMessage {
-  id: string;
-  customerId: string;
 }
 
 export const apiService = {
@@ -125,7 +115,7 @@ export const apiService = {
     return parseMessage(payload);
   },
 
-  async registerCustomer(email: string, passwordHash: string): Promise<{ id: string; email: string; role: string }> {
+  async registerCustomer(email: string, passwordHash: string): Promise<RegisteredUser> {
     const payload = await fetchApi(
       '/users',
       {
@@ -148,9 +138,9 @@ export const apiService = {
   },
 
   async getAvailableSlots(businessId: string, token?: string): Promise<AppointmentSlot[]> {
-    const init = token
+    const init: RequestInit = token
       ? withAuth(token, { cache: 'no-store' })
-      : ({ cache: 'no-store' } as ExtendedRequestInit);
+      : { cache: 'no-store' };
 
     const payload = await fetchApi(
       `/appointments/business/${encodeURIComponent(businessId)}/available`,

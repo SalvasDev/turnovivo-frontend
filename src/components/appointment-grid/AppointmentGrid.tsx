@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react';
 import { AppointmentSlot } from '@/types';
 import Cookies from 'js-cookie';
 import { useUI } from '@/context/UIContext';
-import { ApiError, apiService, BookResponse } from '@/services/api';
+import { ApiError, apiService } from '@/services/api';
 import { getLocalTimeZone, parseDate, today, type CalendarDate } from '@internationalized/date';
 import { I18nProvider } from 'react-aria-components';
 import { Button, DatePicker, Divider, Icon, Skeleton, type DateAvailability, type DateValue } from '@/design-system';
@@ -200,12 +200,8 @@ export default function AppointmentGrid({ initialSlots, businessId, serverUserId
     );
 
     try {
-      const data = isAvailable
-        ? await apiService.bookAppointment(slot.id, token)
-        : await apiService.joinWaitlist(slot.id, token);
-
       if (isAvailable) {
-        const bookingData = data as BookResponse;
+        const bookingData = await apiService.bookAppointment(slot.id, token);
         success('Appointment booked.');
         setMyBookedSlotId(slot.id);
         setSlots((prev) => 
@@ -223,6 +219,7 @@ export default function AppointmentGrid({ initialSlots, businessId, serverUserId
           )
         );
       } else {
+        await apiService.joinWaitlist(slot.id, token);
         success('You joined the waitlist for this time.');
         setMyWaitlistSlotIds((prev) => [...prev, slot.id]);
       }

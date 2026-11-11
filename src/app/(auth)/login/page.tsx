@@ -9,6 +9,7 @@ import { DEFAULT_DEMO_PATH } from '@/config/app';
 import { Button, Input, Spinner } from '@/design-system';
 import styles from '@/design-system/layouts/AuthLayout.module.css';
 import { getEmailError } from '../validation';
+import { parseTokenClaims } from '@/services/api-parsers';
 
 function getErrorMessage(err: unknown, fallback: string) {
   if (err instanceof Error && err.message) {
@@ -80,16 +81,8 @@ function LoginForm() {
       login(data.accessToken);
 
       let target = nextPath;
-      if (!requestedPath) {
-        try {
-          const base64 = data.accessToken.split('.')[1].replace(/-/g, '+').replace(/_/g, '/');
-          const payload = JSON.parse(window.atob(base64));
-          if (payload.role === 'SUPER_ADMIN') {
-            target = '/super-admin';
-          }
-        } catch {
-          // An undecodable token falls back to the default destination.
-        }
+      if (!requestedPath && parseTokenClaims(data.accessToken)?.role === 'SUPER_ADMIN') {
+        target = '/super-admin';
       }
 
       // Stays pending until navigation so the form cannot be submitted twice.

@@ -3,20 +3,9 @@
 import { createContext, useCallback, useContext, useMemo, useRef, useSyncExternalStore, ReactNode } from 'react';
 import Cookies from 'js-cookie';
 import { apiService } from '@/services/api';
+import { parseTokenClaims } from '@/services/api-parsers';
 
 const TOKEN_COOKIE = 'turnovivo_token';
-
-interface JWTPayload {
-  sub: string;
-  email: string;
-  role: string;
-}
-
-function parsePayload(token: string): JWTPayload {
-  const base64Url = token.split('.')[1];
-  const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-  return JSON.parse(window.atob(base64)) as JWTPayload;
-}
 
 interface User {
   id: string;
@@ -53,13 +42,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const token = snapshot ?? null;
 
   const user = useMemo<User | null>(() => {
-    if (!token) return null;
-    try {
-      const payload = parsePayload(token);
-      return { id: payload.sub, email: payload.email, role: payload.role };
-    } catch {
-      return null;
-    }
+    const claims = token ? parseTokenClaims(token) : null;
+    return claims ? { id: claims.sub, email: claims.email, role: claims.role } : null;
   }, [token]);
 
   const login = useCallback((newToken: string) => {

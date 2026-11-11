@@ -1,6 +1,7 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
 import { apiService } from '@/services/api';
+import { parseTokenClaims } from '@/services/api-parsers';
 
 import { DEFAULT_DEMO_PATH, DEFAULT_DEMO_SLUG } from '@/config/app';
 import styles from './page.module.css';
@@ -14,16 +15,12 @@ export default async function AdminPage() {
     redirect('/login?next=%2Fadmin');
   }
 
-  let role = '';
-
-  try {
-    const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
-    role = payload.role;
-  } catch {
+  const claims = parseTokenClaims(token);
+  if (!claims) {
     redirect('/login?next=%2Fadmin');
   }
 
-  if (role !== 'ADMIN' && role !== 'STAFF') {
+  if (claims.role !== 'ADMIN' && claims.role !== 'STAFF') {
     redirect(DEFAULT_DEMO_PATH);
   }
 

@@ -1,5 +1,6 @@
 
 import { ApiError, apiService } from '@/services/api';
+import { parseTokenClaims } from '@/services/api-parsers';
 import { AppointmentGrid } from '@/components/appointment-grid';
 import { notFound, redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
@@ -21,13 +22,11 @@ export default async function BusinessPage({ params }: PageProps) {
     redirect(`/login?next=${encodeURIComponent(`/${slug}`)}`);
   }
 
-  let currentUserId = '';
-  try {
-    const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
-    currentUserId = payload.sub;
-  } catch {
+  const claims = parseTokenClaims(token);
+  if (!claims) {
     redirect(`/login?next=${encodeURIComponent(`/${slug}`)}`);
   }
+  const currentUserId = claims.sub;
 
   let business: Business;
   let availableSlots: AppointmentSlot[] = [];

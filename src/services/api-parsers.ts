@@ -1,5 +1,17 @@
-import type { AppointmentSlot, BlockReason, Business, SlotBlock, SlotStatus } from '@/types';
-import type { AdminUser, BusinessAdmin } from '@/components/super-admin/super-admin-business-client';
+import type {
+  AdminUser,
+  ApiMessage,
+  AppointmentSlot,
+  BlockReason,
+  BookResponse,
+  Business,
+  BusinessAdmin,
+  LoginResponse,
+  RegisteredUser,
+  SlotBlock,
+  SlotStatus,
+  TokenClaims,
+} from '@/types';
 
 type JsonRecord = Record<string, unknown>;
 
@@ -12,7 +24,8 @@ const isText = (value: unknown): value is string => typeof value === 'string' &&
 const isDateText = (value: unknown): value is string => isText(value) && !Number.isNaN(Date.parse(value));
 const textOrEmpty = (value: unknown) => (typeof value === 'string' ? value : '');
 const isOneOf = <T extends string>(options: readonly T[], value: unknown): value is T =>
-  options.includes(value as T);
+  options.some(option => option === value);
+const listOf = (value: unknown): unknown[] => (Array.isArray(value) ? value : []);
 
 /** Reads a JSON body without throwing on empty, non-JSON or malformed responses. */
 export async function readJsonBody(response: Response): Promise<unknown> {
@@ -24,7 +37,7 @@ export async function readJsonBody(response: Response): Promise<unknown> {
   }
 }
 
-export function parseMessage(payload: unknown): { message?: string } {
+export function parseMessage(payload: unknown): ApiMessage {
   if (!isRecord(payload)) return {};
   const { message } = payload;
   if (isText(message)) return { message };
@@ -35,16 +48,30 @@ export function parseMessage(payload: unknown): { message?: string } {
   return {};
 }
 
-export function parseAccessToken(payload: unknown): { accessToken: string } | null {
+export function parseAccessToken(payload: unknown): LoginResponse | null {
   return isRecord(payload) && isText(payload.accessToken) ? { accessToken: payload.accessToken } : null;
 }
 
-export function parseBookResponse(payload: unknown) {
+/** Decodes the JWT payload without verifying it; the backend remains the authority. */
+export function parseTokenClaims(token: string): TokenClaims | null {
+  const segment = token.split('.')[1];
+  if (!segment) return null;
+  try {
+    const binary = atob(segment.replace(/-/g, '+').replace(/_/g, '/'));
+    const claims: unknown = JSON.parse(new TextDecoder().decode(Uint8Array.from(binary, char => char.charCodeAt(0))));
+    if (!isRecord(claims) || !isText(claims.sub)) return null;
+    return { sub: claims.sub, email: textOrEmpty(claims.email), role: textOrEmpty(claims.role) };
+  } catch {
+    return null;
+  }
+}
+
+export function parseBookResponse(payload: unknown): BookResponse {
   const record = isRecord(payload) ? payload : {};
   return { ...parseMessage(payload), id: textOrEmpty(record.id), customerId: textOrEmpty(record.customerId) };
 }
 
-export function parseUser(payload: unknown) {
+export function parseUser(payload: unknown): RegisteredUser {
   const record = isRecord(payload) ? payload : {};
   return { id: textOrEmpty(record.id), email: textOrEmpty(record.email), role: textOrEmpty(record.role) };
 }
@@ -66,16 +93,14 @@ function parseSlot(value: unknown): AppointmentSlot | null {
     return null;
   }
 
-  const waitlistEntries = (Array.isArray(value.waitlistEntries) ? value.waitlistEntries : [])
-    .filter((entry): entry is JsonRecord => isRecord(entry) && isText(entry.customerId))
-    .map(entry => ({ customerId: entry.customerId as string }));
-  const slotBlocks: SlotBlock[] = (Array.isArray(value.slotBlocks) ? value.slotBlocks : [])
-    .filter((block): block is JsonRecord =>
-      isRecord(block) && isText(block.customerId) && isOneOf(BLOCK_REASONS, block.reason))
-    .map(block => ({ customerId: block.customerId as string, reason: block.reason as BlockReason }));
+  const waitlistEntries = listOf(value.waitlistEntries).flatMap(entry =>
+    isRecord(entry) && isText(entry.customerId) ? [{ customerId: entry.customerId }] : []);
+  const slotBlocks = listOf(value.slotBlocks).flatMap((block): SlotBlock[] =>
+    isRecord(block) && isText(block.customerId) && isOneOf(BLOCK_REASONS, block.reason)
+      ? [{ customerId: block.customerId, reason: block.reason }]
+      : []);
 
   return {
-    ...value,
     id,
     businessId: textOrEmpty(value.businessId),
     staffId: textOrEmpty(value.staffId),
@@ -84,7 +109,6 @@ function parseSlot(value: unknown): AppointmentSlot | null {
     status,
     appointment: isRecord(appointment) && (isText(appointment.id) || isText(appointment.customerId))
       ? {
-        ...appointment,
         id: isText(appointment.id) ? appointment.id : undefined,
         customerId: textOrEmpty(appointment.customerId),
       }
@@ -102,17 +126,18 @@ export function parseSlots(payload: unknown): AppointmentSlot[] | null {
 
 export function parseBusinessAdmins(payload: unknown): BusinessAdmin[] | null {
   if (!Array.isArray(payload)) return null;
-  return payload
-    .filter((item): item is JsonRecord => isRecord(item) && isText(item.id) && isText(item.name))
-    .map(item => ({
-      id: item.id as string,
-      name: item.name as string,
-      slug: textOrEmpty(item.slug),
-      ownerId: textOrEmpty(item.ownerId),
-      ownerEmail: textOrEmpty(item.ownerEmail),
-      active: item.active === true,
-      createdAt: textOrEmpty(item.createdAt),
-    }));
+  return payload.flatMap((item): BusinessAdmin[] =>
+    isRecord(item) && isText(item.id) && isText(item.name)
+      ? [{
+        id: item.id,
+        name: item.name,
+        slug: textOrEmpty(item.slug),
+        ownerId: textOrEmpty(item.ownerId),
+        ownerEmail: textOrEmpty(item.ownerEmail),
+        active: item.active === true,
+        createdAt: textOrEmpty(item.createdAt),
+      }]
+      : []);
 }
 
 export function parseAdminUser(payload: unknown): AdminUser | null {

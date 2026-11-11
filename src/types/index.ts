@@ -34,3 +34,46 @@ export interface Appointment {
   status: AppointmentStatus;
   createdAt: string;
 }
+
+// API response contracts, produced only by the parsers in services/api-parsers.
+
+export interface ApiMessage {
+  message?: string;
+}
+
+export interface LoginResponse {
+  accessToken: string;
+}
+
+export interface BookResponse extends ApiMessage {
+  id: string;
+  customerId: string;
+}
+
+export interface RegisteredUser {
+  id: string;
+  email: string;
+  role: string;
+}
+
+export interface AdminUser {
+  id: string;
+  email: string;
+  role: string;
+}
+
+export interface BusinessAdmin {
+  id: string;
+  name: string;
+  slug: string;
+  ownerId: string;
+  ownerEmail: string;
+  active: boolean;
+  createdAt: string;
+}
+
+export interface TokenClaims {
+  sub: string;
+  email: string;
+  role: string;
+}

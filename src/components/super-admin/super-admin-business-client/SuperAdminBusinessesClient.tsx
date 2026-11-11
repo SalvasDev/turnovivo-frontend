@@ -13,22 +13,9 @@ import {
   type BusinessFormValues,
 } from '../business-forms';
 import styles from './SuperAdminBusinessesClient.module.css';
+import type { AdminUser, BusinessAdmin } from '@/types';
 
-export interface BusinessAdmin {
-  id: string;
-  name: string;
-  slug: string;
-  ownerId: string;
-  ownerEmail: string;
-  active: boolean;
-  createdAt: string;
-}
-
-export interface AdminUser {
-  id: string;
-  email: string;
-  role: string;
-}
+export type { AdminUser, BusinessAdmin } from '@/types';
 
 function apiFetch(path: string, token: string, init?: RequestInit): Promise<unknown> {
   return fetchApi(path, {

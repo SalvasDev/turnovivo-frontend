@@ -1,16 +1,14 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import SuperAdminBusinessesClient, {
-  type AdminUser,
-  type BusinessAdmin,
-} from '@/components/super-admin/super-admin-business-client';
+import SuperAdminBusinessesClient from '@/components/super-admin/super-admin-business-client';
 import { DEFAULT_DEMO_PATH } from '@/config/app';
 import { ApiError, createSessionExpiredLoginUrl, fetchApi, requireValid } from '@/services/api';
-import { parseAdminUsers, parseBusinessAdmins } from '@/services/api-parsers';
+import { parseAdminUsers, parseBusinessAdmins, parseTokenClaims } from '@/services/api-parsers';
+import type { AdminUser, BusinessAdmin } from '@/types';
 
-const authInit = (token: string) => ({
+const authInit = (token: string): RequestInit => ({
   headers: { Authorization: `Bearer ${token}` },
-  cache: 'no-store' as const,
+  cache: 'no-store',
 });
 
 export default async function SuperAdminPage() {
@@ -21,16 +19,12 @@ export default async function SuperAdminPage() {
     redirect('/login?next=%2Fsuper-admin');
   }
 
-  let role = '';
-
-  try {
-    const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString());
-    role = payload.role;
-  } catch {
+  const claims = parseTokenClaims(token);
+  if (!claims) {
     redirect('/login?next=%2Fsuper-admin');
   }
 
-  if (role !== 'SUPER_ADMIN') {
+  if (claims.role !== 'SUPER_ADMIN') {
     redirect(DEFAULT_DEMO_PATH);
   }
 
