@@ -40,22 +40,11 @@
 }
 
 .card .action {
-  --button-outline-border: var(--text-tertiary);
-  --button-outline-text: var(--text-tertiary);
-  --button-outline-surface-hover: var(--surface-hover);
-  --button-outline-surface-pressed: var(--surface-pressed);
+  --button-border-width: calc(var(--size-2) / 2);
   inline-size: 100%;
-  min-block-size: var(--size-32);
   margin-block-start: auto;
-  padding: var(--space-8) var(--space-16);
-  font-size: var(--font-size-14);
-  line-height: var(--line-height-16);
 }
 
-.card .action[data-variant='outlined'] {
-  box-shadow: inset 0 0 0 calc(var(--size-2) / 2) var(--button-outline-border);
-}
-
-.card .action[data-variant='outlined'][data-disabled] {
-  box-shadow: inset 0 0 0 calc(var(--size-2) / 2) var(--button-outline-border-disabled);
+:global([data-theme='dark']) .card {
+  --border-secondary: var(--border-primary);
 }

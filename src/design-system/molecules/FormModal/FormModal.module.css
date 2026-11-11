@@ -51,8 +51,8 @@
 }
 
 .header .close {
-  --button-text-label: var(--icon-secondary);
-  --button-text-surface-hover: var(--surface-hover);
+  --button-tone: var(--icon-secondary);
+  --button-tint-hover: var(--surface-hover);
   flex: none;
   inline-size: var(--size-24);
   block-size: var(--size-24);

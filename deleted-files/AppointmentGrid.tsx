@@ -4,8 +4,8 @@ import { useState, useEffect } from 'react';
 import { AppointmentSlot } from '@/types';
 import Cookies from 'js-cookie';
 import { useUI } from '@/context/UIContext';
-import SlotCard from './appointment-grid/SlotCard';
-import HoldOfferModal from './appointment-grid/hold-offer-modal/HoldOfferModal';
+// import SlotCard from './appointment-grid/SlotCard';
+// import HoldOfferModal from './appointment-grid/hold-offer-modal/HoldOfferModal';
 import { apiService, BookResponse } from '@/services/api';
 import { parseDate, type CalendarDate } from '@internationalized/date';
 import { I18nProvider } from 'react-aria-components';
@@ -323,7 +323,7 @@ export default function AppointmentGrid({ initialSlots, businessId, serverUserId
             <h2 className={styles.dateTitle}>
               {formatDateHeader(groupedSlots[dateKey][0].startTime)}
             </h2>
-            <div className={styles.slots} role="list" aria-label={formatDateHeader(groupedSlots[dateKey][0].startTime)} aria-live="polite">
+            {/* <div className={styles.slots} role="list" aria-label={formatDateHeader(groupedSlots[dateKey][0].startTime)} aria-live="polite">
               {groupedSlots[dateKey].map((slot) => (
                 <SlotCard
                   key={slot.id}
@@ -339,17 +339,17 @@ export default function AppointmentGrid({ initialSlots, businessId, serverUserId
                   onLeaveWaitlist={handleLeaveWaitlist}
                 />
               ))}
-            </div>
+            </div> */}
           </div>
         ))}
       </div>
-      {activeHoldSlot && (
+      {/* {activeHoldSlot && (
         <HoldOfferModal
           countdown={countdown}
           onDecline={handleDeclineHold}
           onConfirm={handleConfirmHold}
         />
-      )}
+      )} */}
     </section>
   );
 }

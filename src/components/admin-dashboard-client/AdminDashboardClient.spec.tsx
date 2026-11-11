@@ -39,15 +39,17 @@ describe('AdminDashboardClient', () => {
   it('renders the Figma columns, DS badge and three-dot menu trigger', () => {
     renderDashboard();
     const table = screen.getByRole('table');
-    expect(within(table).getAllByRole('columnheader').map(cell => cell.textContent)).toEqual(['Slot', 'Status', 'Client ID', 'Actions']);
+    expect(within(table).getAllByRole('columnheader').map(cell => cell.textContent)).toEqual(['Date', 'Slot', 'Status', 'Client ID', 'Actions']);
+    expect(within(table).getByRole('columnheader', { name: 'Actions' }).firstElementChild?.className).toMatch(/srOnly/);
+    expect(screen.getByRole('rowheader')).toHaveTextContent('Fri, Nov 13');
     expect(screen.getByText('Reserved').parentElement).toHaveAttribute('data-color', 'error');
-    expect(screen.getByText('customer-1')).toBeInTheDocument();
-    const icon = screen.getByRole('button', { name: /^Acciones del turno/ }).querySelector('svg');
+    expect(screen.getByText('customer-1')).toHaveAttribute('title', 'customer-1');
+    const icon = screen.getByRole('button', { name: /^Acciones del turno Fri, Nov 13/ }).querySelector('svg');
     expect(icon).toHaveAttribute('viewBox', '0 0 4 16');
     expect(icon?.querySelectorAll('path')).toHaveLength(3);
     const tableColumns = table.querySelectorAll('col');
-    expect(tableColumns[1]).toHaveStyle({ width: '16.1%' });
-    expect(tableColumns[3]).toHaveStyle({ width: '12%' });
+    expect(tableColumns[2]).toHaveStyle({ width: '15%' });
+    expect(tableColumns[4]).toHaveStyle({ width: '9%' });
     expect(screen.queryByRole('menuitem')).not.toBeInTheDocument();
   });
 

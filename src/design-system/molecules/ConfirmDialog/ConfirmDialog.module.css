@@ -69,25 +69,11 @@
 
 .actions .cancel,
 .actions .confirm {
+  --button-padding-block: var(--space-8);
+  --button-padding-inline: var(--space-16);
   min-block-size: var(--size-40);
-  padding: var(--space-8) var(--space-16);
 }
 
 .actions .cancel {
-  --button-outline-border: var(--text-tertiary);
-  --button-outline-text: var(--text-tertiary);
-  --button-outline-surface-hover: var(--surface-hover);
-  --button-outline-surface-pressed: var(--surface-pressed);
-  box-shadow: inset 0 0 0 calc(var(--size-2) / 2) var(--button-outline-border);
-}
-
-.actions .cancel[data-disabled] {
-  box-shadow: inset 0 0 0 calc(var(--size-2) / 2) var(--button-outline-border-disabled);
-}
-
-.dialog[data-variant='destructive'] .confirm {
-  --button-filled-bg: var(--button-error-filled-surface-default);
-  --button-filled-bg-hover: var(--button-error-filled-surface-hover);
-  --button-filled-bg-pressed: var(--button-error-filled-surface-pressed);
-  --button-filled-text: var(--neutral-0);
+  --button-border-width: calc(var(--size-2) / 2);
 }

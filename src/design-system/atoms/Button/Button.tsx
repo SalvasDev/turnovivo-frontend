@@ -6,6 +6,8 @@ import styles from "./Button.module.css";
 
 export function Button({
   variant = "filled",
+  color = "brand",
+  size = "large",
   startIcon,
   endIcon,
   children,
@@ -15,10 +17,12 @@ export function Button({
   return (
     <AriaButton
       {...props}
+      data-variant={variant}
+      data-color={color}
+      data-size={size}
       className={(state) =>
         [
           styles.button,
-          styles[variant],
           typeof className === "function" ? className(state) : className,
         ]
           .filter(Boolean)

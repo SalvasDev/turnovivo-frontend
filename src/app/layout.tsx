@@ -3,8 +3,6 @@ import { Inter, Maven_Pro } from "next/font/google";
 import "./globals.css";
 import "@/design-system/tokens/tokens.css";
 import { AuthProvider } from "@/context/AuthContext";
-import GlobalHeader from "@/components/GlobalHeader";
-import GlobalFooter from "@/components/GlobalFooter";
 import { UIProvider } from "@/context/UIContext";
 import styles from "./layout.module.css";
 
@@ -24,18 +22,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           href="#main-content"
           className={styles.skipLink}
         >
-          Saltar al contenido principal
+          Jump to main content
         </a>
         <AuthProvider>
-          <UIProvider>
-            <div className={styles.shell}>
-              <GlobalHeader />
-              <main id="main-content" tabIndex={-1} className={styles.main}>
-                {children}
-              </main>
-              <GlobalFooter />
-            </div>
-          </UIProvider>
+          <UIProvider>{children}</UIProvider>
         </AuthProvider>
       </body>
     </html>

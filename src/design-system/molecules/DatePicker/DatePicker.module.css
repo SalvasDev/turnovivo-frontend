@@ -59,8 +59,16 @@
   border-color: var(--border-primary);
 }
 
-.control[data-hovered] {
+:global([data-theme='dark']) .control {
   border-color: var(--border-primary);
+}
+
+:global([data-theme='dark']) .picker .clearButton {
+  --button-border: var(--border-primary);
+}
+
+.picker:not([data-disabled], [data-invalid]) .control[data-hovered] {
+  border-color: var(--border-brand);
 }
 
 .input {
@@ -91,9 +99,9 @@
 
 .control .calendarButton,
 .calendar .navigationButton {
-  --button-text-label: var(--icon-secondary);
-  --button-text-surface-hover: var(--surface-hover);
-  --button-text-surface-pressed: var(--surface-pressed);
+  --button-tone: var(--icon-secondary);
+  --button-tint-hover: var(--surface-hover);
+  --button-tint-pressed: var(--surface-pressed);
   flex: none;
   inline-size: var(--size-32);
   block-size: var(--size-32);
@@ -103,24 +111,21 @@
 }
 
 .picker .clearButton {
-  --button-outline-border: var(--border-primary);
-  --button-outline-text: var(--text-primary);
-  --button-outline-surface-hover: var(--surface-hover);
-  --button-outline-surface-pressed: var(--surface-pressed);
+  --button-border: var(--border-primary);
+  --button-tone: var(--text-primary);
+  --button-tint-hover: var(--surface-hover);
+  --button-tint-pressed: var(--surface-pressed);
   grid-column: 2;
   grid-row: 2;
+  --button-border-width: calc(var(--size-2) / 2);
+  --button-padding-block: var(--space-8);
+  --button-padding-inline: var(--space-12);
   align-self: start;
   min-block-size: var(--size-40);
-  padding: var(--space-8) var(--space-12);
   border-radius: var(--radius-8);
-  box-shadow: inset 0 0 0 calc(var(--size-2) / 2) var(--button-outline-border);
   font-size: var(--font-size-16);
   font-weight: var(--font-weight-medium);
   line-height: var(--line-height-20);
-}
-
-.picker .clearButton[data-disabled] {
-  box-shadow: inset 0 0 0 calc(var(--size-2) / 2) var(--button-outline-border-disabled);
 }
 
 .picker[data-state='resting'] .control {
@@ -129,9 +134,8 @@
 
 .picker[data-state='active'] .control,
 .control[data-focus-within] {
-  border-color: var(--border-brand);
-  outline: var(--size-2) solid var(--border-focus);
-  outline-offset: var(--space-2);
+  outline: var(--size-2) solid var(--border-brand);
+  outline-offset: 0;
 }
 
 .picker[data-state='success'] .control {

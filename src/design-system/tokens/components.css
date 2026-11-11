@@ -41,4 +41,44 @@
   --button-neutral-outline-surface-hover: var(--neutral-20);
   --button-neutral-filled-surface-hover: var(--neutral-80);
   --button-neutral-filled-surface-default: var(--neutral-70);
+  --button-error-label: var(--red-70);
+  --button-error-filled-label: var(--neutral-0);
+  --button-warning-label: var(--gold-90);
+  --button-warning-filled-label: var(--neutral-100);
+  --button-neutral-label: var(--neutral-70);
+  --button-success-filled-surface-default: var(--green-70);
+  --button-success-filled-surface-hover: var(--green-80);
+  --button-success-filled-surface-pressed: var(--green-90);
+  --button-success-filled-label: var(--neutral-0);
+  --button-success-outline-border-default: var(--green-70);
+  --button-success-outline-surface-hover: var(--green-20);
+  --button-success-outline-surface-pressed: var(--green-30);
+  --button-success-text-surface-hover: var(--green-20);
+  --button-success-text-surface-pressed: var(--green-30);
+  --button-success-label: var(--green-80);
+}
+
+/* Pale light-theme hover surfaces would erase the lighter dark-theme labels. */
+[data-theme="dark"] {
+  --button-error-label: var(--red-50);
+  --button-warning-label: var(--gold-50);
+  --button-success-label: var(--green-50);
+  --button-neutral-label: var(--neutral-30);
+  --button-neutral-outline-border-default: var(--neutral-30);
+  --button-error-outline-surface-hover: var(--surface-hover);
+  --button-error-outline-surface-pressed: var(--surface-pressed);
+  --button-error-text-surface-hover: var(--surface-hover);
+  --button-error-text-surface-pressed: var(--surface-pressed);
+  --button-warning-outline-surface-hover: var(--surface-hover);
+  --button-warning-outline-surface-pressed: var(--surface-pressed);
+  --button-warning-text-surface-hover: var(--surface-hover);
+  --button-warning-text-surface-pressed: var(--surface-pressed);
+  --button-success-outline-surface-hover: var(--surface-hover);
+  --button-success-outline-surface-pressed: var(--surface-pressed);
+  --button-success-text-surface-hover: var(--surface-hover);
+  --button-success-text-surface-pressed: var(--surface-pressed);
+  --button-neutral-outline-surface-hover: var(--surface-hover);
+  --button-neutral-outline-surface-pressed: var(--surface-pressed);
+  --button-neutral-text-surface-hover: var(--surface-hover);
+  --button-neutral-text-surface-pressed: var(--surface-pressed);
 }

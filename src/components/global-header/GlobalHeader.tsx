@@ -28,11 +28,10 @@ export default function GlobalHeader() {
   const { user, logout, loading } = useAuth();
   const [darkTheme, setDarkTheme] = useState(false);
 
-  const isAuthPage = pathname === '/login' || pathname === '/register';
   const canAccessAdmin = user?.role === 'ADMIN' || user?.role === 'STAFF';
   const displayName = getDisplayName(user?.email);
 
-  if (isAuthPage || (pathname !== '/' && (loading || !user))) {
+  if (pathname !== '/' && (loading || !user)) {
     return null;
   }
 
@@ -45,7 +44,7 @@ export default function GlobalHeader() {
 
         <div className={styles.actions}>
           <a
-            href={process.env.NEXT_PUBLIC_REPOSITORY_URL || 'https://github.com'}
+            href={process.env.NEXT_PUBLIC_REPOSITORY_URL || 'https://github.com/SalvasDev'}
             target="_blank"
             rel="noopener noreferrer"
             className={styles.iconButton}
@@ -69,13 +68,13 @@ export default function GlobalHeader() {
             <Icon name="lightMode" />
           </button>
           {!loading && user && (
-            <nav aria-label="Menu de usuario">
+            <nav aria-label="User menu">
               <MenuTrigger>
                 <AriaButton
                   className={styles.menuButton}
-                  aria-label={`Menu de usuario de ${displayName}`}
+                  aria-label={`User menu of ${displayName}`}
                 >
-                  <span title={`Menu de usuario de ${displayName}`}>
+                  <span title={`User menu of ${displayName}`}>
                     <Avatar name={displayName} decorative />
                   </span>
                 </AriaButton>
@@ -84,14 +83,14 @@ export default function GlobalHeader() {
                     <p>{displayName}</p>
                     <p className={styles.role}>{user.role}</p>
                   </div>
-                  <Menu aria-label="Opciones de sesion" className={styles.menu}>
+                  <Menu aria-label="Session options" className={styles.menu}>
                     {canAccessAdmin && (
                       <MenuItem href="/admin" className={styles.menuItem}>
                         Dashboard Admin
                       </MenuItem>
                     )}
                     <MenuItem onAction={logout} className={styles.menuItem}>
-                      Cerrar sesion
+                      Log out
                     </MenuItem>
                   </Menu>
                 </Popover>

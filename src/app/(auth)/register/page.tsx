@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { apiService } from '@/services/api';
 import { Button, Input } from '@/design-system';
-import styles from '@/components/auth/AuthForm.module.css';
+import styles from '@/design-system/layouts/AuthLayout.module.css';
 
 function validatePassword(value: string) {
   return value.length >= 8 && /[0-9]/.test(value)

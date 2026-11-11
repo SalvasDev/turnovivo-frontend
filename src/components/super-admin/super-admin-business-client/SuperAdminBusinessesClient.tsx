@@ -4,8 +4,12 @@ import { useCallback, useState } from 'react';
 import { Menu, MenuItem, MenuTrigger, Popover } from 'react-aria-components';
 import { useUI } from '@/context/UIContext';
 import { Badge, Button, Icon, Table, type TableColumn } from '@/design-system';
-import { CreateAdminModal, type AdminFormValues } from './super-admin/CreateAdminModal';
-import { CreateBusinessModal, type BusinessFormValues } from './super-admin/CreateBusinessModal';
+import {
+  CreateAdminModal,
+  CreateBusinessModal,
+  type AdminFormValues,
+  type BusinessFormValues,
+} from '../business-forms';
 import styles from './SuperAdminBusinessesClient.module.css';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
@@ -214,7 +218,7 @@ export default function SuperAdminBusinessesClient({
           <p className={styles.description}>Create and manage registered businesses. Each company requires an admin user.</p>
         </header>
         <div className={styles.toolbar}>
-          <Button variant="outlined" className={`${styles.action} ${styles.secondaryAction}`} startIcon={<Icon name="add" />} isDisabled={submitting} onPress={() => setModal('admin')}>Add admin</Button>
+          <Button variant="outlined" color="neutral" className={`${styles.action} ${styles.secondaryAction}`} startIcon={<Icon name="add" />} isDisabled={submitting} onPress={() => setModal('admin')}>Add admin</Button>
           <Button className={styles.action} startIcon={<Icon name="add" />} isDisabled={submitting} onPress={() => { setEditingBusiness(undefined); setModal('company'); }}>Add company</Button>
         </div>
         <Table caption="Platform companies" columns={columns} items={businesses} getRowId={business => business.id} emptyMessage="No companies registered yet." className={styles.table} aria-busy={submitting} />

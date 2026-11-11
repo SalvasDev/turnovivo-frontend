@@ -55,7 +55,7 @@ describe('GlobalHeader', () => {
 
     expect(screen.getByText('Dashboard Admin')).toBeInTheDocument();
 
-    await user.click(screen.getByRole('menuitem', { name: 'Cerrar sesion' }));
+    await user.click(screen.getByRole('menuitem', { name: 'Log out' }));
     expect(logout).toHaveBeenCalledTimes(1);
   });
 
@@ -79,7 +79,7 @@ describe('GlobalHeader', () => {
       user: { email: 'admin.user@turnovivo.com', role: 'ADMIN' },
     });
     render(<GlobalHeader />);
-    const trigger = screen.getByRole('button', { name: /menu de usuario de admin user/i });
+    const trigger = screen.getByRole('button', { name: /user menu of admin user/i });
     expect(trigger.querySelector('[data-variant="default"]')).toBeInTheDocument();
     expect(trigger).toHaveAttribute('aria-expanded', 'false');
     trigger.focus();
@@ -88,7 +88,7 @@ describe('GlobalHeader', () => {
     await waitFor(() => expect(adminItem).toHaveFocus());
     expect(adminItem).toHaveAttribute('href', '/admin');
     await user.keyboard('{ArrowDown}');
-    expect(screen.getByRole('menuitem', { name: 'Cerrar sesion' })).toHaveFocus();
+    expect(screen.getByRole('menuitem', { name: 'Log out' })).toHaveFocus();
     await user.keyboard('{Escape}');
     await waitFor(() => expect(screen.queryByRole('menu')).not.toBeInTheDocument());
     await waitFor(() => expect(trigger).toHaveFocus());
@@ -104,7 +104,7 @@ describe('GlobalHeader', () => {
       user: { email: 'cliente@turnovivo.com', role: 'CLIENT' },
     });
     render(<GlobalHeader />);
-    const trigger = screen.getByRole('button', { name: /menu de usuario de cliente/i });
+    const trigger = screen.getByRole('button', { name: /user menu of cliente/i });
     await user.click(trigger);
     expect(screen.getAllByRole('menuitem')).toHaveLength(1);
     expect(screen.queryByRole('menuitem', { name: 'Dashboard Admin' })).not.toBeInTheDocument();
@@ -112,7 +112,7 @@ describe('GlobalHeader', () => {
     await waitFor(() => expect(screen.queryByRole('menu')).not.toBeInTheDocument());
     expect(logout).not.toHaveBeenCalled();
     await user.click(trigger);
-    await user.click(screen.getByRole('menuitem', { name: 'Cerrar sesion' }));
+    await user.click(screen.getByRole('menuitem', { name: 'Log out' }));
     expect(logout).toHaveBeenCalledTimes(1);
     await waitFor(() => expect(screen.queryByRole('menu')).not.toBeInTheDocument());
   });
@@ -131,17 +131,5 @@ describe('GlobalHeader', () => {
     expect(document.documentElement).toHaveAttribute('data-theme', 'dark');
     await user.click(screen.getByRole('button', { name: 'Activar tema claro' }));
     expect(document.documentElement).toHaveAttribute('data-theme', 'light');
-  });
-
-  it('no renderiza el header en la pagina de login aunque exista sesion', () => {
-    mockedUsePathname.mockReturnValue('/login');
-    mockedUseAuth.mockReturnValue({
-      loading: false,
-      logout: vi.fn(),
-      user: { email: 'admin.user@turnovivo.com', role: 'ADMIN' },
-    });
-
-    const { container } = render(<GlobalHeader />);
-    expect(container).toBeEmptyDOMElement();
   });
 });

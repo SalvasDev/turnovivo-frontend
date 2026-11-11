@@ -26,7 +26,8 @@ export function Card({ title, badges = [], action, className, ...props }: CardPr
           type="button"
           {...action}
           variant={action.variant ?? 'outlined'}
-          data-variant={action.variant ?? 'outlined'}
+          color={action.color ?? ((action.variant ?? 'outlined') === 'outlined' ? 'neutral' : 'brand')}
+          size={action.size ?? 'small'}
           className={(state) => [
             styles.action,
             typeof action.className === 'function' ? action.className(state) : action.className,

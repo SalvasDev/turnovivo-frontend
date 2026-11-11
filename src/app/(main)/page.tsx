@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import { HomeActions } from '@/components/HomeActions';
+import { HomeActions } from '@/components/home-actions';
 import { DEFAULT_DEMO_NAME } from '@/config/app';
 import styles from './page.module.css';
 
@@ -7,7 +7,7 @@ export default function Home() {
   return (
     <div className={styles.home} lang="en">
       <Image
-        src="/esfera%201.png"
+        src="/sphera.png"
         alt=""
         width={918}
         height={1098}

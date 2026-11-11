@@ -62,10 +62,10 @@
 }
 
 .form .submit {
+  --button-padding-block: var(--space-8);
+  --button-padding-inline: var(--space-16);
   inline-size: 100%;
   min-block-size: var(--size-40);
-  padding-block: var(--space-8);
-  padding-inline: var(--space-16);
 }
 
 .signUp {

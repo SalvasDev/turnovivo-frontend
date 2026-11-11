@@ -111,6 +111,11 @@
   opacity: 1;
 }
 
+/* .input:focus-visible {
+  outline: var(--size-2) solid var(--border-focus);
+  outline-offset: var(--space-2);
+} */
+
 .icon {
   display: inline-flex;
   align-items: center;
@@ -131,11 +136,14 @@
   border-color: var(--border-primary);
 }
 
+.field:not([data-disabled], [data-invalid]) .control:hover {
+  border-color: var(--border-brand);
+}
+
 .field[data-state='active'] .control,
 .control:has(.input[data-focused]) {
-  border-color: var(--border-brand);
-  outline: var(--size-2) solid var(--border-focus);
-  outline-offset: var(--space-2);
+  outline: var(--size-2) solid var(--border-brand);
+  outline-offset: 0;
 }
 
 .field[data-state='success'] .control {

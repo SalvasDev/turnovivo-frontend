@@ -7,7 +7,7 @@ import { useUI } from '@/context/UIContext';
 import { apiService, BookResponse } from '@/services/api';
 import { parseDate, type CalendarDate } from '@internationalized/date';
 import { I18nProvider } from 'react-aria-components';
-import { Button, DatePicker } from '@/design-system';
+import { Button, DatePicker, Divider } from '@/design-system';
 import styles from './AppointmentGrid.module.css';
 import SlotCard from './slot-card';
 import HoldOfferModal from './hold-offer-modal';
@@ -300,10 +300,11 @@ export default function AppointmentGrid({ initialSlots, businessId, serverUserId
           <DatePicker value={selectedDate} onChange={setSelectedDate} />
         </I18nProvider>
       </div>
+      <Divider />
       {myBookedSlot && (
         <div className={styles.bookingNotice} role="status">
           <span>Your appointment: {formatDateHeader(myBookedSlot.startTime)}, {formatTime(myBookedSlot.startTime)}</span>
-          <Button variant="text" onPress={() => setSelectedDate(parseDate(getDateKey(myBookedSlot.startTime)))}>
+          <Button variant="outlined" size="small" onPress={() => setSelectedDate(parseDate(getDateKey(myBookedSlot.startTime)))}>
             View appointment
           </Button>
         </div>

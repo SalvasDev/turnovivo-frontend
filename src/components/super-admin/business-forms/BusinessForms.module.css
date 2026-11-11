@@ -6,9 +6,10 @@
 }
 
 .form .submit {
+  --button-padding-block: var(--space-8);
+  --button-padding-inline: var(--space-16);
   inline-size: 100%;
   min-block-size: var(--size-40);
-  padding: var(--space-8) var(--space-16);
 }
 
 .ownerHeader {
@@ -17,8 +18,10 @@
 }
 
 .ownerFields .toggle {
+  --button-border-width: 0px;
+  --button-padding-block: 0px;
+  --button-padding-inline: 0px;
   min-block-size: var(--size-20);
-  padding: 0;
   font-size: var(--font-size-12);
   line-height: var(--line-height-20);
 }

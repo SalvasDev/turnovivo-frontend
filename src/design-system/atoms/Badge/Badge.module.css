@@ -82,17 +82,21 @@
 }
 
 :global([data-theme='dark']) .badge[data-appearance='light'][data-color='success'] {
-  --badge-text: var(--color-alert-success-dark);
+  --badge-text: var(--green-50);
+  --badge-background: var(--green-100);
 }
 
 :global([data-theme='dark']) .badge[data-appearance='light'][data-color='error'] {
-  --badge-text: var(--color-alert-error-dark);
+  --badge-text: var(--red-50);
+  --badge-background: var(--red-100);
 }
 
 :global([data-theme='dark']) .badge[data-appearance='light'][data-color='warning'] {
-  --badge-text: var(--color-alert-warning-dark);
+  --badge-text: var(--gold-50);
+  --badge-background: var(--gold-100);
 }
 
 :global([data-theme='dark']) .badge[data-appearance='light'][data-color='info'] {
-  --badge-text: var(--color-alert-info-dark);
+  --badge-text: var(--blue-50);
+  --badge-background: var(--blue-100);
 }

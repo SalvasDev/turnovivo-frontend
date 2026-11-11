@@ -7,7 +7,7 @@ import { useAuth } from '@/context/AuthContext';
 import { apiService } from '@/services/api';
 import { DEFAULT_DEMO_PATH } from '@/config/app';
 import { Button, Input } from '@/design-system';
-import styles from '@/components/auth/AuthForm.module.css';
+import styles from '@/design-system/layouts/AuthLayout.module.css';
 
 function getErrorMessage(err: unknown, fallback: string) {
   if (err instanceof Error && err.message) {

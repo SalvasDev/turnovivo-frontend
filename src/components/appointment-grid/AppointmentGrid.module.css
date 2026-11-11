@@ -6,7 +6,6 @@
 .toolbar {
   inline-size: calc(var(--size-64) * 6 + var(--size-24) + var(--size-2) / 2);
   max-inline-size: 100%;
-  margin-block-end: calc(var(--space-96) - var(--space-4));
 }
 
 .dates {
@@ -76,4 +75,9 @@
   .slots {
     grid-template-columns: minmax(0, 1fr);
   }
+}
+
+:global([data-theme='dark']) .bookingNotice {
+  --surface-success-light: var(--green-100);
+  --color-alert-success-dark: var(--color-alert-success-light);
 }

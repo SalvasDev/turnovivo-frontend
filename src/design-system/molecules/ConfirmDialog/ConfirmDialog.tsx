@@ -44,6 +44,7 @@ export function ConfirmDialog({
               <Button
                 type="button"
                 variant="outlined"
+                color="neutral"
                 autoFocus
                 isDisabled={isPending}
                 onPress={onCancel}
@@ -55,6 +56,7 @@ export function ConfirmDialog({
             <Button
               type="button"
               variant="filled"
+              color={variant === 'destructive' ? 'red' : 'brand'}
               autoFocus={variant === 'info'}
               isPending={isPending}
               isDisabled={isPending}

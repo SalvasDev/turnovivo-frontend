@@ -50,7 +50,7 @@
   block-size: var(--size-40);
   padding: 0;
   border: 0;
-  border-radius: var(--radius-4);
+  border-radius: var(--radius-radius-full);
   background: transparent;
   color: inherit;
   cursor: pointer;

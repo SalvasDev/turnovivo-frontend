@@ -39,7 +39,7 @@ export default function HoldOfferModal({ countdown, onDecline, onConfirm }: Hold
             />
           </div>
           <div className={styles.actions}>
-            <Button type="button" variant="outlined" autoFocus onPress={onDecline} className={styles.decline}>
+            <Button type="button" variant="outlined" color="neutral" autoFocus onPress={onDecline} className={styles.decline}>
               Rechazar
             </Button>
             <Button type="button" onPress={onConfirm} isDisabled={remainingSeconds === 0} className={styles.confirm}>

@@ -5,3 +5,7 @@
 .slotCard[data-slot-status='mine'] {
   border-color: var(--border-success);
 }
+
+.slotCard[data-slot-status='blocked'] {
+  opacity: 0.5;
+}

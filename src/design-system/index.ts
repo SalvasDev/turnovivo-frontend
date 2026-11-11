@@ -1,5 +1,5 @@
 export { Button } from './atoms/Button';
-export type { BaseButtonProps } from './atoms/Button';
+export type { BaseButtonProps, ButtonColor, ButtonSize, ButtonVariant } from './atoms/Button';
 export { Icon } from './atoms/Icon';
 export type { IconName } from './atoms/Icon';
 export { Input } from './atoms/Input';
@@ -8,6 +8,8 @@ export { Avatar } from './atoms/Avatar';
 export type { AvatarProps } from './atoms/Avatar';
 export { Badge } from './atoms/Badge';
 export type { BadgeAppearance, BadgeColor, BadgeProps } from './atoms/Badge';
+export { Divider } from './atoms/Divider';
+export type { DividerProps } from './atoms/Divider';
 export { Card } from './molecules/Card';
 export type { CardProps } from './molecules/Card';
 export { DatePicker } from './molecules/DatePicker';

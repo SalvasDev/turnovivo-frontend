@@ -47,6 +47,11 @@ export default function AdminDashboardClient({ initialSlots, businessId, token }
       ? (part.value === 'AM' ? 'a.m.' : 'p.m.')
       : part.value.replace(/\s+/g, ' ')).join('');
   };
+  const formatDate = (isoString: string) => new Intl.DateTimeFormat('en-US', {
+    weekday: 'short',
+    month: 'short',
+    day: 'numeric',
+  }).format(new Date(isoString));
   useEffect(() => {
     const interval = setInterval(async () => {
       try {
@@ -97,11 +102,15 @@ export default function AdminDashboardClient({ initialSlots, businessId, token }
 
   const columns: TableColumn<AdminSlot>[] = [
     {
-      id: 'slot', header: 'Slot', isRowHeader: true, width: '25.8%',
+      id: 'date', header: 'Date', isRowHeader: true, width: '15%',
+      renderCell: slot => <span className={styles.time}>{formatDate(slot.startTime)}</span>,
+    },
+    {
+      id: 'slot', header: 'Slot', width: '25%',
       renderCell: slot => <span className={styles.time}>{formatTime(slot.startTime)} - {formatTime(slot.endTime)}</span>,
     },
     {
-      id: 'status', header: 'Status', width: '16.1%',
+      id: 'status', header: 'Status', width: '15%',
       renderCell: slot => (
         <Badge className={styles.status} color={slot.status === 'AVAILABLE' ? 'success' : slot.status === 'HOLD' ? 'warning' : 'error'}>
           {slot.status === 'AVAILABLE' ? 'Active' : slot.status === 'HOLD' ? 'Hold' : 'Reserved'}
@@ -109,17 +118,21 @@ export default function AdminDashboardClient({ initialSlots, businessId, token }
       ),
     },
     {
-      id: 'client', header: 'Client ID', width: '46.1%',
-      renderCell: slot => slot.appointment?.customerId || (slot.status === 'HOLD' ? 'Assigning...' : '-'),
+      id: 'client', header: 'Client ID', width: '36%',
+      renderCell: slot => {
+        const customerId = slot.appointment?.customerId;
+        if (customerId) return <span className={styles.client} title={customerId}>{customerId}</span>;
+        return slot.status === 'HOLD' ? 'Assigning...' : '-';
+      },
     },
     {
-      id: 'actions', header: 'Actions', width: '12%',
+      id: 'actions', header: <span className={styles.srOnly}>Actions</span>, width: '9%',
       renderCell: slot => (
         <MenuTrigger>
           <Button
             variant="text"
             className={styles.menuTrigger}
-            aria-label={`Acciones del turno ${formatTime(slot.startTime)} - ${formatTime(slot.endTime)}`}
+            aria-label={`Acciones del turno ${formatDate(slot.startTime)} ${formatTime(slot.startTime)} - ${formatTime(slot.endTime)}`}
             isDisabled={loadingSlotId !== null}
           >
             <span title="Acciones del turno"><Icon name="moreVertical" /></span>

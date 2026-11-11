@@ -1,0 +1,16 @@
+@layer reset, ds;
+
+@layer ds {
+  .divider {
+    box-sizing: border-box;
+    inline-size: 100%;
+    block-size: 0;
+    margin: var(--space-40) 0;
+    border: 0;
+    border-block-start: thin solid var(--border-secondary);
+  }
+}
+
+:global([data-theme='dark']) .divider {
+  --border-secondary: var(--border-primary);
+}

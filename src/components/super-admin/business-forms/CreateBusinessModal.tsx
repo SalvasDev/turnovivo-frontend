@@ -2,9 +2,9 @@
 
 import { useState, type FormEvent } from 'react';
 import { Button, FormModal, Input, Select, Toast } from '@/design-system';
-import type { AdminUser, BusinessAdmin } from '../SuperAdminBusinessesClient';
 import { validateAdminPassword, type AdminFormValues } from './CreateAdminModal';
 import styles from './BusinessForms.module.css';
+import { AdminUser, BusinessAdmin } from '../super-admin-business-client/SuperAdminBusinessesClient';
 
 export interface BusinessFormValues {
   name: string;

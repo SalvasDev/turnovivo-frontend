@@ -66,9 +66,9 @@
 }
 
 .toast .dismiss {
-  --button-text-label: var(--color-alert-info-dark);
-  --button-text-surface-hover: var(--overlay-1);
-  --button-text-surface-pressed: var(--overlay-2);
+  --button-tone: var(--color-alert-info-dark);
+  --button-tint-hover: var(--overlay-1);
+  --button-tint-pressed: var(--overlay-2);
   flex: none;
   inline-size: var(--size-24);
   block-size: var(--size-24);

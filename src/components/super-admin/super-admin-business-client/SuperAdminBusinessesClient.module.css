@@ -44,14 +44,15 @@
 }
 
 .toolbar .action {
+  --button-padding-block: var(--space-8);
+  --button-padding-inline: var(--space-16);
   min-block-size: var(--size-40);
-  padding: var(--space-8) var(--space-16);
 }
 
 .toolbar .secondaryAction {
-  --button-outline-border: var(--border-secondary);
-  --button-outline-text: var(--text-primary);
-  box-shadow: inset 0 0 0 calc(var(--size-2) / 2) var(--border-secondary);
+  --button-border: var(--border-secondary);
+  --button-tone: var(--text-primary);
+  --button-border-width: calc(var(--size-2) / 2);
 }
 
 .table {
@@ -81,9 +82,9 @@
 }
 
 .table .menuTrigger {
-  --button-text-label: var(--icon-secondary);
-  --button-text-surface-hover: var(--surface-hover);
-  --button-text-surface-pressed: var(--surface-pressed);
+  --button-tone: var(--icon-secondary);
+  --button-tint-hover: var(--surface-hover);
+  --button-tint-pressed: var(--surface-pressed);
   inline-size: var(--size-24);
   block-size: var(--size-24);
   min-block-size: var(--size-24);

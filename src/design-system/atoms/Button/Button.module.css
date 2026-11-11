@@ -1,103 +1,187 @@
-.button {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  box-sizing: border-box;
-  gap: var(--space-8);
-  min-block-size: var(--size-48);
-  max-inline-size: 100%;
-  padding-block: var(--space-12);
-  padding-inline: var(--space-24);
-  border: 0;
-  border-radius: var(--radius-radius-full);
-  background: var(--surface-transparent);
-  font-family: var(--font-family-inter), sans-serif;
-  font-size: var(--font-size-18);
-  font-weight: var(--font-weight-semibold);
-  line-height: var(--line-height-24);
-  letter-spacing: 0;
-  text-align: center;
-  text-decoration: none;
-  vertical-align: middle;
-  cursor: pointer;
-}
+@layer reset, ds;
 
-.button[data-focus-visible] {
-  outline: var(--size-2) dashed var(--border-focus);
-  outline-offset: var(--space-2);
-}
+/* Layered so any unlayered consumer class can override it without specificity fights. */
+@layer ds {
+  .button {
+    /* Brand palette: [data-color] swaps it, variants only consume it. */
+    --button-solid: var(--button-filled-bg);
+    --button-solid-hover: var(--button-filled-bg-hover);
+    --button-solid-pressed: var(--button-filled-bg-pressed);
+    --button-on-solid: var(--button-filled-text);
+    --button-tone: var(--button-outline-text);
+    --button-border: var(--button-outline-border);
+    --button-tint-hover: var(--button-outline-surface-hover);
+    --button-tint-pressed: var(--button-outline-surface-pressed);
+    --button-border-width: var(--size-2);
+    --button-padding-block: var(--space-12);
+    --button-padding-inline: var(--space-24);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-sizing: border-box;
+    gap: var(--space-8);
+    min-block-size: var(--size-48);
+    max-inline-size: 100%;
+    /* Every variant keeps a border, so its width is discounted once from the padding. */
+    padding:
+      calc(var(--button-padding-block) - var(--button-border-width))
+      calc(var(--button-padding-inline) - var(--button-border-width));
+    border: var(--button-border-width) solid transparent;
+    border-radius: var(--radius-radius-full);
+    background: var(--surface-transparent);
+    font-family: var(--font-family-inter), sans-serif;
+    font-size: var(--font-size-18);
+    font-weight: var(--font-weight-semibold);
+    line-height: var(--line-height-24);
+    letter-spacing: 0;
+    text-align: center;
+    text-decoration: none;
+    vertical-align: middle;
+    cursor: pointer;
+  }
 
-.button[data-disabled] {
-  cursor: not-allowed;
-}
+  .button[data-size='medium'] {
+    --button-padding-block: var(--space-8);
+    --button-padding-inline: var(--space-20);
+    min-block-size: var(--size-40);
+    font-size: var(--font-size-16);
+  }
 
-.label {
-  min-inline-size: 0;
-  overflow-wrap: anywhere;
-}
+  .button[data-size='small'] {
+    --button-padding-block: var(--space-8);
+    --button-padding-inline: var(--space-16);
+    gap: var(--space-4);
+    min-block-size: var(--size-32);
+    font-size: var(--font-size-14);
+    line-height: var(--line-height-16);
+  }
 
-.icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  flex: none;
-  inline-size: var(--size-20);
-  block-size: var(--size-20);
-}
+  .button[data-color='red'] {
+    --button-solid: var(--button-error-filled-surface-default);
+    --button-solid-hover: var(--button-error-filled-surface-hover);
+    --button-solid-pressed: var(--button-error-filled-surface-pressed);
+    --button-on-solid: var(--button-error-filled-label);
+    --button-tone: var(--button-error-label);
+    --button-border: var(--button-error-outline-border-default);
+    --button-tint-hover: var(--button-error-outline-surface-hover);
+    --button-tint-pressed: var(--button-error-outline-surface-pressed);
+  }
 
-.icon > svg {
-  inline-size: 100%;
-  block-size: 100%;
-}
+  .button[data-color='green'] {
+    --button-solid: var(--button-success-filled-surface-default);
+    --button-solid-hover: var(--button-success-filled-surface-hover);
+    --button-solid-pressed: var(--button-success-filled-surface-pressed);
+    --button-on-solid: var(--button-success-filled-label);
+    --button-tone: var(--button-success-label);
+    --button-border: var(--button-success-outline-border-default);
+    --button-tint-hover: var(--button-success-outline-surface-hover);
+    --button-tint-pressed: var(--button-success-outline-surface-pressed);
+  }
 
-.filled {
-  background: var(--button-filled-bg);
-  color: var(--button-filled-text);
-}
+  .button[data-color='gold'] {
+    --button-solid: var(--button-warning-filled-surface-default);
+    --button-solid-hover: var(--button-warning-filled-surface-hover);
+    --button-solid-pressed: var(--button-warning-filled-surface-pressed);
+    --button-on-solid: var(--button-warning-filled-label);
+    --button-tone: var(--button-warning-label);
+    --button-border: var(--button-warning-outline-border-default);
+    --button-tint-hover: var(--button-warning-outline-surface-hover);
+    --button-tint-pressed: var(--button-warning-outline-surface-pressed);
+  }
 
-.filled[data-hovered]:not([data-disabled]) {
-  background: var(--button-filled-bg-hover);
-}
+  .button[data-color='neutral'] {
+    --button-solid: var(--button-neutral-filled-surface-default);
+    --button-solid-hover: var(--button-neutral-filled-surface-hover);
+    --button-solid-pressed: var(--button-neutral-filled-surface-pressed);
+    --button-on-solid: var(--button-neutral-filled-label);
+    --button-tone: var(--button-neutral-label);
+    --button-border: var(--button-neutral-outline-border-default);
+    --button-tint-hover: var(--button-neutral-outline-surface-hover);
+    --button-tint-pressed: var(--button-neutral-outline-surface-pressed);
+  }
 
-.filled[data-pressed]:not([data-disabled]) {
-  background: var(--button-filled-bg-pressed);
-}
+  :global([data-theme='dark']) .button[data-color='brand'] {
+    --button-solid: var(--blue-100);
+    --button-solid-hover: var(--blue-90);
+    --button-solid-pressed: var(--blue-80);
+    --button-on-solid: var(--blue-50);
+    --button-tint-hover: var(--surface-hover);
+    --button-tint-pressed: var(--surface-pressed);
+  }
 
-.filled[data-disabled] {
-  background: var(--button-disabled-bg);
-  color: var(--button-disabled-text);
-}
+  .button[data-variant='filled'] {
+    background: var(--button-solid);
+    color: var(--button-on-solid);
+  }
 
-.outlined {
-  box-shadow: inset 0 0 0 var(--size-2) var(--button-outline-border);
-  color: var(--button-outline-text);
-}
+  .button[data-variant='filled'][data-hovered] {
+    background: var(--button-solid-hover);
+  }
 
-.outlined[data-hovered]:not([data-disabled]) {
-  background: var(--button-outline-surface-hover);
-}
+  .button[data-variant='filled'][data-pressed] {
+    background: var(--button-solid-pressed);
+  }
 
-.outlined[data-pressed]:not([data-disabled]) {
-  background: var(--button-outline-surface-pressed);
-}
+  .button[data-variant='outlined'] {
+    border-color: var(--button-border);
+    color: var(--button-tone);
+  }
 
-.outlined[data-disabled] {
-  box-shadow: inset 0 0 0 var(--size-2) var(--button-outline-border-disabled);
-  color: var(--button-outline-label-disabled);
-}
+  .button[data-variant='text'] {
+    color: var(--button-tone);
+  }
 
-.text {
-  color: var(--button-text-label);
-}
+  .button[data-variant='outlined'][data-hovered],
+  .button[data-variant='text'][data-hovered] {
+    background: var(--button-tint-hover);
+  }
 
-.text[data-hovered]:not([data-disabled]) {
-  background: var(--button-text-surface-hover);
-}
+  .button[data-variant='outlined'][data-pressed],
+  .button[data-variant='text'][data-pressed] {
+    background: var(--button-tint-pressed);
+  }
 
-.text[data-pressed]:not([data-disabled]) {
-  background: var(--button-text-surface-pressed);
-}
+  /* Declared after the variants so it wins the cascade. */
+  .button[data-disabled] {
+    color: var(--button-outline-label-disabled);
+    cursor: not-allowed;
+  }
 
-.text[data-disabled] {
-  color: var(--button-text-label-disabled);
+  .button[data-variant='filled'][data-disabled] {
+    background: var(--button-disabled-bg);
+    color: var(--button-disabled-text);
+  }
+
+  .button[data-variant='outlined'][data-disabled] {
+    border-color: var(--button-outline-border-disabled);
+  }
+
+  .button[data-focus-visible] {
+    outline: var(--size-2) dashed var(--border-focus);
+    outline-offset: var(--space-2);
+  }
+
+  .label {
+    min-inline-size: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    inline-size: var(--size-20);
+    block-size: var(--size-20);
+  }
+
+  .button[data-size='small'] .icon {
+    inline-size: var(--size-16);
+    block-size: var(--size-16);
+  }
+
+  .icon > svg {
+    inline-size: 100%;
+    block-size: 100%;
+  }
 }

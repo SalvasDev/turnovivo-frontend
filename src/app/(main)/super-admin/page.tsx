@@ -1,6 +1,9 @@
 import { cookies } from 'next/headers';
 import { redirect } from 'next/navigation';
-import SuperAdminBusinessesClient, { AdminUser, BusinessAdmin } from '@/components/SuperAdminBusinessesClient';
+import SuperAdminBusinessesClient, {
+  type AdminUser,
+  type BusinessAdmin,
+} from '@/components/super-admin/super-admin-business-client';
 import { DEFAULT_DEMO_PATH } from '@/config/app';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';

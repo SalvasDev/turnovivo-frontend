@@ -39,8 +39,8 @@
 }
 
 .field .trigger {
-  --button-outline-surface-hover: var(--surface-hover);
-  --button-outline-surface-pressed: var(--surface-pressed);
+  --button-tint-hover: var(--surface-hover);
+  --button-tint-pressed: var(--surface-pressed);
   justify-content: space-between;
   inline-size: 100%;
   min-block-size: var(--size-40);
@@ -49,11 +49,18 @@
   border-radius: var(--radius-12);
   background: var(--surface-primary);
   color: var(--text-primary);
-  box-shadow: none;
   font-size: var(--font-size-16);
   font-weight: var(--font-weight-regular);
   line-height: var(--line-height-20);
   text-align: start;
+}
+
+.field .trigger[data-hovered] {
+  background: var(--button-tint-hover);
+}
+
+.field .trigger[data-pressed] {
+  background: var(--button-tint-pressed);
 }
 
 .trigger > span {
