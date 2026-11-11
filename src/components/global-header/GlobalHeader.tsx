@@ -7,6 +7,7 @@ import { Button as AriaButton, Menu, MenuItem, MenuTrigger, Popover } from 'reac
 import { useAuth } from '@/context/AuthContext';
 import { setTheme, useTheme } from '@/context/theme';
 import { DEFAULT_DEMO_PATH } from '@/config/app';
+import { canAccessAdmin as canAccessAdminArea } from '@/domain/access';
 import { Icon } from '@/design-system/atoms/Icon';
 import { Avatar } from '@/design-system/atoms/Avatar';
 import { Spinner } from '@/design-system/atoms/Spinner';
@@ -35,7 +36,7 @@ export default function GlobalHeader() {
   const themeLabel = isDark ? 'Switch to light theme' : 'Switch to dark theme';
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
-  const canAccessAdmin = user?.role === 'ADMIN' || user?.role === 'STAFF';
+  const canAccessAdmin = canAccessAdminArea(user?.role);
   const displayName = getDisplayName(user?.email);
 
   if (!PUBLIC_PATHS.has(pathname) && (loading || !user)) {

@@ -2,6 +2,8 @@ import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { UIProvider } from '@/context/UIContext';
+import Cookies from 'js-cookie';
+import { TOKEN_COOKIE } from '@/services/session';
 import SuperAdminBusinessesClient, { type AdminUser, type BusinessAdmin } from './SuperAdminBusinessesClient';
 
 const admin: AdminUser = { id: 'admin-1', email: 'admin.manager@turnovivo.com', role: 'ADMIN' };
@@ -22,7 +24,7 @@ function mutations() {
 }
 
 function renderDashboard(businesses = currentBusinesses, admins = currentAdmins) {
-  return render(<UIProvider><SuperAdminBusinessesClient token="super-admin-token" initialBusinesses={businesses} initialAdmins={admins} /></UIProvider>);
+  return render(<UIProvider><SuperAdminBusinessesClient initialBusinesses={businesses} initialAdmins={admins} /></UIProvider>);
 }
 
 async function openCompany(user: ReturnType<typeof userEvent.setup>) {
@@ -44,6 +46,7 @@ describe('SuperAdminBusinessesClient', () => {
   beforeEach(() => {
     currentAdmins = [{ ...admin }];
     currentBusinesses = [{ ...business }];
+    Cookies.set(TOKEN_COOKIE, 'super-admin-token');
     fetchMock.mockReset();
     vi.stubGlobal('fetch', fetchMock);
     fetchMock.mockImplementation(async (input, init) => {
@@ -67,7 +70,10 @@ describe('SuperAdminBusinessesClient', () => {
     });
   });
 
-  afterEach(() => { vi.unstubAllGlobals(); });
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    Cookies.remove(TOKEN_COOKIE);
+  });
 
   it('renders the Figma table, status badges and vertical actions without legacy forms', () => {
     renderDashboard();
@@ -103,7 +109,9 @@ describe('SuperAdminBusinessesClient', () => {
     await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
     const [url, init] = mutations()[0];
     expect(String(url)).toMatch(/\/admin\/users$/);
-    expect(init?.headers).toMatchObject({ Authorization: 'Bearer super-admin-token', 'Content-Type': 'application/json' });
+    const headers = new Headers(init?.headers);
+    expect(headers.get('Authorization')).toBe('Bearer super-admin-token');
+    expect(headers.get('Content-Type')).toBe('application/json');
     expect(JSON.parse(String(init?.body))).toEqual({ email: 'new@company.com', password: 'Secure123' });
     await openCompany(user);
     await user.click(screen.getByRole('button', { name: /OWNER ADMIN/ }));

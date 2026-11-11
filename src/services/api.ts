@@ -1,217 +1,200 @@
 import type {
+  AdminUser,
   ApiMessage,
   AppointmentSlot,
   BookResponse,
   Business,
+  BusinessAdmin,
   LoginResponse,
   RegisteredUser,
 } from '@/types';
-import Cookies from 'js-cookie';
 import {
   parseAccessToken,
+  parseAdminUser,
+  parseAdminUsers,
   parseBookResponse,
   parseBusiness,
+  parseBusinessAdmins,
   parseMessage,
   parseSlots,
   parseUser,
-  readJsonBody,
 } from './api-parsers';
+import { httpRequest, requireValid } from './http-client';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000';
-const TOKEN_COOKIE = 'turnovivo_token';
-let redirectingAfterExpiry = false;
-
-export const NETWORK_ERROR_MESSAGE = 'Unable to reach the service. Check your connection and try again.';
-export const INVALID_RESPONSE_MESSAGE = 'The service returned an unexpected response. Please try again.';
-
+export {
+  ApiError,
+  createSessionExpiredLoginUrl,
+  getErrorMessage,
+  INVALID_RESPONSE_MESSAGE,
+  NETWORK_ERROR_MESSAGE,
+  redirectToLoginAfterSessionExpiry,
+} from './http-client';
 export type { ApiMessage, BookResponse, LoginResponse, RegisteredUser } from '@/types';
 
-/** HTTP error that keeps the status so callers can tell "not found" apart from outages. */
-export class ApiError extends Error {
-  constructor(message: string, readonly status: number) {
-    super(message);
-    this.name = 'ApiError';
-  }
-}
+/** Server components authenticate with the cookie value they read; the browser uses its session. */
+export type SessionOptions = { auth: true } | { token: string };
 
-export function createSessionExpiredLoginUrl(pathname: string, search = '', hash = '') {
-  const returnPath = `${pathname}${search}${hash}`;
-  const safePath = returnPath.startsWith('/') && !returnPath.startsWith('//') && !returnPath.startsWith('/\\')
-    ? returnPath
-    : '/';
-  return `/login?sessionExpired=1&next=${encodeURIComponent(safePath)}`;
-}
-
-export function redirectToLoginAfterSessionExpiry() {
-  if (typeof window === 'undefined') return;
-  Cookies.remove(TOKEN_COOKIE);
-  if (window.location.pathname === '/login' || redirectingAfterExpiry) return;
-  redirectingAfterExpiry = true;
-  window.location.replace(createSessionExpiredLoginUrl(
-    window.location.pathname,
-    window.location.search,
-    window.location.hash,
-  ));
-}
-
-/** Sends a request and returns the raw JSON body; transport and HTTP failures become ApiError. */
-export async function fetchApi(path: string, init?: RequestInit, fallbackError = 'The request failed.'): Promise<unknown> {
-  let response: Response;
-  try {
-    response = await fetch(`${API_URL}${path}`, init);
-  } catch {
-    throw new ApiError(NETWORK_ERROR_MESSAGE, 0);
-  }
-
-  const payload = await readJsonBody(response);
-
-  if (!response.ok) {
-    const hasAuthorization = new Headers(init?.headers).has('Authorization');
-    if (response.status === 401 && hasAuthorization && path !== '/auth/logout') {
-      redirectToLoginAfterSessionExpiry();
-    }
-    throw new ApiError(parseMessage(payload).message ?? fallbackError, response.status);
-  }
-
-  return payload;
-}
-
-/** Rejects a response whose shape the UI can't render. */
-export function requireValid<T>(value: T | null): T {
-  if (value === null) throw new ApiError(INVALID_RESPONSE_MESSAGE, 502);
-  return value;
-}
-
-function withAuth(token: string, init?: RequestInit): RequestInit {
-  return {
-    ...init,
-    headers: {
-      ...(init?.headers || {}),
-      Authorization: `Bearer ${token}`,
-    },
-  };
+export interface BusinessInput {
+  id?: string;
+  name: string;
+  slug: string;
+  ownerId: string;
 }
 
 export const apiService = {
   async login(email: string, passwordHash: string): Promise<LoginResponse> {
-    const payload = await fetchApi(
-      '/auth/login',
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, passwordHash }),
-      },
-      'Unable to sign in. Please try again.',
-    );
+    const payload = await httpRequest('/auth/login', {
+      method: 'POST',
+      body: { email, passwordHash },
+      fallbackError: 'Unable to sign in. Please try again.',
+    });
     return requireValid(parseAccessToken(payload));
   },
 
-  async logout(token: string): Promise<ApiMessage> {
-    const payload = await fetchApi(
-      '/auth/logout',
-      withAuth(token, { method: 'POST' }),
-      'Unable to end the session on the server.',
-    );
+  async logout(): Promise<ApiMessage> {
+    const payload = await httpRequest('/auth/logout', {
+      method: 'POST',
+      auth: true,
+      ignoreUnauthorized: true,
+      fallbackError: 'Unable to end the session on the server.',
+    });
     return parseMessage(payload);
   },
 
   async registerCustomer(email: string, passwordHash: string): Promise<RegisteredUser> {
-    const payload = await fetchApi(
-      '/users',
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, passwordHash, role: 'CUSTOMER' }),
-      },
-      'Unable to create your account. Please try again.',
-    );
+    const payload = await httpRequest('/users', {
+      method: 'POST',
+      body: { email, passwordHash, role: 'CUSTOMER' },
+      fallbackError: 'Unable to create your account. Please try again.',
+    });
     return parseUser(payload);
   },
 
   async getBusinessBySlug(slug: string): Promise<Business> {
-    const payload = await fetchApi(
-      `/businesses/${encodeURIComponent(slug)}`,
-      { next: { revalidate: 60 } },
-      'Unable to load the business.',
-    );
+    const payload = await httpRequest(`/businesses/${encodeURIComponent(slug)}`, {
+      revalidate: 60,
+      fallbackError: 'Unable to load the business.',
+    });
     return requireValid(parseBusiness(payload));
   },
 
-  async getAvailableSlots(businessId: string, token?: string): Promise<AppointmentSlot[]> {
-    const init: RequestInit = token
-      ? withAuth(token, { cache: 'no-store' })
-      : { cache: 'no-store' };
-
-    const payload = await fetchApi(
-      `/appointments/business/${encodeURIComponent(businessId)}/available`,
-      init,
-      'Unable to load the available appointments.',
-    );
+  async getAvailableSlots(businessId: string, session?: SessionOptions, signal?: AbortSignal): Promise<AppointmentSlot[]> {
+    const payload = await httpRequest(`/appointments/business/${encodeURIComponent(businessId)}/available`, {
+      ...session,
+      cache: 'no-store',
+      signal,
+      fallbackError: 'Unable to load the available appointments.',
+    });
     return requireValid(parseSlots(payload));
   },
 
-  async bookAppointment(slotId: string, token: string): Promise<BookResponse> {
-    const payload = await fetchApi(
-      '/appointments/book',
-      withAuth(token, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ slotId }),
-      }),
-      'Unable to book this appointment.',
-    );
+  async bookAppointment(slotId: string): Promise<BookResponse> {
+    const payload = await httpRequest('/appointments/book', {
+      method: 'POST',
+      auth: true,
+      body: { slotId },
+      fallbackError: 'Unable to book this appointment.',
+    });
     return parseBookResponse(payload);
   },
 
-  async joinWaitlist(slotId: string, token: string): Promise<ApiMessage> {
-    const payload = await fetchApi(
-      '/appointments/waitlist/join',
-      withAuth(token, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ slotId }),
-      }),
-      'Unable to join the waitlist.',
-    );
+  async joinWaitlist(slotId: string): Promise<ApiMessage> {
+    const payload = await httpRequest('/appointments/waitlist/join', {
+      method: 'POST',
+      auth: true,
+      body: { slotId },
+      fallbackError: 'Unable to join the waitlist.',
+    });
     return parseMessage(payload);
   },
 
-  async cancelAppointment(appointmentId: string, token: string): Promise<ApiMessage> {
-    const payload = await fetchApi(
-      `/appointments/${encodeURIComponent(appointmentId)}/cancel`,
-      withAuth(token, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-      }),
-      'Unable to cancel the appointment.',
-    );
+  async cancelAppointment(appointmentId: string): Promise<ApiMessage> {
+    const payload = await httpRequest(`/appointments/${encodeURIComponent(appointmentId)}/cancel`, {
+      method: 'POST',
+      auth: true,
+      fallbackError: 'Unable to cancel the appointment.',
+    });
     return parseMessage(payload);
   },
 
-  async leaveWaitlist(slotId: string, token: string): Promise<ApiMessage> {
-    const payload = await fetchApi(
-      `/appointments/slots/${encodeURIComponent(slotId)}/leave-waitlist`,
-      withAuth(token, { method: 'POST' }),
-      'Unable to leave the waitlist.',
-    );
+  async leaveWaitlist(slotId: string): Promise<ApiMessage> {
+    const payload = await httpRequest(`/appointments/slots/${encodeURIComponent(slotId)}/leave-waitlist`, {
+      method: 'POST',
+      auth: true,
+      fallbackError: 'Unable to leave the waitlist.',
+    });
     return parseMessage(payload);
   },
 
-  async confirmHold(slotId: string, token: string): Promise<ApiMessage> {
-    const payload = await fetchApi(
-      `/appointments/slots/${encodeURIComponent(slotId)}/confirm-hold`,
-      withAuth(token, { method: 'POST' }),
-      'Unable to claim this appointment.',
-    );
+  async confirmHold(slotId: string): Promise<ApiMessage> {
+    const payload = await httpRequest(`/appointments/slots/${encodeURIComponent(slotId)}/confirm-hold`, {
+      method: 'POST',
+      auth: true,
+      fallbackError: 'Unable to claim this appointment.',
+    });
     return parseMessage(payload);
   },
 
-  async declineHold(slotId: string, token: string): Promise<ApiMessage> {
-    const payload = await fetchApi(
-      `/appointments/slots/${encodeURIComponent(slotId)}/decline-hold`,
-      withAuth(token, { method: 'POST' }),
-      'Unable to decline this appointment.',
-    );
+  async declineHold(slotId: string): Promise<ApiMessage> {
+    const payload = await httpRequest(`/appointments/slots/${encodeURIComponent(slotId)}/decline-hold`, {
+      method: 'POST',
+      auth: true,
+      fallbackError: 'Unable to decline this appointment.',
+    });
     return parseMessage(payload);
+  },
+
+  async listBusinesses(session: SessionOptions): Promise<BusinessAdmin[]> {
+    const payload = await httpRequest('/businesses', {
+      ...session,
+      cache: 'no-store',
+      fallbackError: 'Unable to load the companies.',
+    });
+    return requireValid(parseBusinessAdmins(payload));
+  },
+
+  async listAdmins(session: SessionOptions): Promise<AdminUser[]> {
+    const payload = await httpRequest('/admin/users?role=ADMIN', {
+      ...session,
+      cache: 'no-store',
+      fallbackError: 'Unable to load the admins.',
+    });
+    return requireValid(parseAdminUsers(payload));
+  },
+
+  async createAdmin(email: string, password: string): Promise<AdminUser> {
+    const payload = await httpRequest('/admin/users', {
+      method: 'POST',
+      auth: true,
+      body: { email, password },
+      fallbackError: 'Unable to create the admin.',
+    });
+    return requireValid(parseAdminUser(payload));
+  },
+
+  async saveBusiness({ id, ...business }: BusinessInput): Promise<void> {
+    await httpRequest(id ? `/businesses/${encodeURIComponent(id)}` : '/businesses', {
+      method: id ? 'PUT' : 'POST',
+      auth: true,
+      body: business,
+      fallbackError: id ? 'Unable to update the company.' : 'Unable to create the company.',
+    });
+  },
+
+  async reactivateBusiness({ id, name, slug, ownerId }: BusinessAdmin): Promise<void> {
+    await httpRequest(`/businesses/${encodeURIComponent(id)}`, {
+      method: 'PUT',
+      auth: true,
+      body: { name, slug, ownerId, active: true },
+      fallbackError: 'Unable to reactivate the company.',
+    });
+  },
+
+  async deactivateBusiness(id: string): Promise<void> {
+    await httpRequest(`/businesses/${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+      auth: true,
+      fallbackError: 'Unable to deactivate the company.',
+    });
   },
 };

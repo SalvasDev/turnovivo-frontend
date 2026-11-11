@@ -1,6 +1,15 @@
 import type { FC } from 'react';
 import type { AppointmentSlot } from '@/types';
 import { Card, type BadgeProps, type BaseButtonProps } from '@/design-system';
+import {
+  CUSTOMER_SLOT_STATUS_LABEL,
+  getBlockReason,
+  isHoldFor,
+  isOnWaitlist,
+  isReservedBy,
+  SLOT_STATUS_TONE,
+  type LocalBlocks,
+} from '@/domain/slots';
 import styles from './SlotCard.module.css';
 
 interface SlotCardProps {
@@ -8,7 +17,7 @@ interface SlotCardProps {
   serverUserId: string;
   myBookedSlotId: string | null;
   myWaitlistSlotIds: string[];
-  localBlocks: Record<string, 'CANCELLED' | 'DECLINED'>;
+  localBlocks: LocalBlocks;
   loadingSlotId: string | null;
   formatTime: (isoString: string) => string;
   onSlotAction: (slot: AppointmentSlot) => Promise<void>;
@@ -28,34 +37,28 @@ const SlotCard: FC<SlotCardProps> = ({
   onCancelAppointment,
   onLeaveWaitlist,
 }) => {
-  const serverBlock = slot.slotBlocks?.find((b) => b.customerId === serverUserId);
-  const blockReason: string | undefined = serverBlock?.reason || localBlocks[slot.id];
+  const blockReason = getBlockReason(slot, serverUserId, localBlocks);
   const isBlocked = !!blockReason;
   const isCancelled = blockReason === 'CANCELLED';
 
-  const isMine =
-    !isBlocked &&
-    ((slot.status === 'RESERVED' && slot.appointment?.customerId === serverUserId) ||
-      myBookedSlotId === slot.id);
+  const isMine = !isBlocked && (isReservedBy(slot, serverUserId) || myBookedSlotId === slot.id);
 
-  const isHoldForMe =
-    !isBlocked && slot.status === 'HOLD' && slot.appointment?.customerId === serverUserId;
+  const isHoldForMe = !isBlocked && isHoldFor(slot, serverUserId);
 
   const amIWaiting =
     !isBlocked &&
     !isMine &&
     !isHoldForMe &&
-    (slot.waitlistEntries?.some((w) => w.customerId === serverUserId) ||
-      myWaitlistSlotIds.includes(slot.id));
+    (isOnWaitlist(slot, serverUserId) || myWaitlistSlotIds.includes(slot.id));
 
   const isAvailable = slot.status === 'AVAILABLE' && !isMine && !isBlocked;
   const isPending = loadingSlotId === slot.id;
   const statusLabel = isBlocked
     ? (isCancelled ? 'Cancelled' : 'Declined')
-    : isMine ? 'Your turn' : isAvailable ? 'Available' : slot.status === 'HOLD' ? 'On hold' : 'Busy';
+    : isMine ? 'Your turn' : CUSTOMER_SLOT_STATUS_LABEL[slot.status];
   const badges: BadgeProps[] = [{
     children: statusLabel,
-    color: isBlocked ? 'error' : isMine || isAvailable ? 'success' : slot.status === 'HOLD' ? 'warning' : 'error',
+    color: isBlocked ? 'error' : isMine ? 'success' : SLOT_STATUS_TONE[slot.status],
     appearance: isMine ? 'solid' : 'light',
   }];
 

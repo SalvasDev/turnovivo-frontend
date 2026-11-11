@@ -28,8 +28,15 @@ export default function HoldOfferModal({ countdown, onDecline, onConfirm }: Hold
     }
   };
 
+  // Escape means "not now": it declines like the focused default button, then the modal unmounts.
   return (
-    <ModalOverlay isOpen isDismissable={false} isKeyboardDismissDisabled className={styles.overlay}>
+    <ModalOverlay
+      isOpen
+      isDismissable={false}
+      isKeyboardDismissDisabled={pending !== null}
+      onOpenChange={(isOpen) => { if (!isOpen) void run('decline', onDecline)(); }}
+      className={styles.overlay}
+    >
       <Modal className={styles.modal}>
         <Dialog role="alertdialog" aria-describedby={descriptionId} className={styles.dialog}>
           <div className={styles.content}>

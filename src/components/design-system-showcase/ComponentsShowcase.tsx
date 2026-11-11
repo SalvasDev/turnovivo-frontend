@@ -1,8 +1,10 @@
 'use client';
 
 import { useState } from 'react';
-import { getLocalTimeZone, today, type CalendarDate } from '@internationalized/date';
+import { type CalendarDate } from '@internationalized/date';
 import { I18nProvider, Menu, MenuItem, MenuTrigger, Popover } from 'react-aria-components';
+import { APP_LOCALE } from '@/config/app';
+import { getBusinessToday } from '@/domain/format';
 import {
   Avatar,
   Badge,
@@ -52,9 +54,9 @@ interface Row {
 }
 
 const rows: Row[] = [
-  { id: '1', time: '09:00 - 09:30', status: 'Available', client: '-' },
-  { id: '2', time: '09:30 - 10:00', status: 'Reserved', client: 'c-1042' },
-  { id: '3', time: '10:00 - 10:30', status: 'Hold', client: 'Assigning...' },
+  { id: '1', time: '9:00 – 9:30 AM', status: 'Available', client: '-' },
+  { id: '2', time: '9:30 – 10:00 AM', status: 'Reserved', client: 'c-1042' },
+  { id: '3', time: '10:00 – 10:30 AM', status: 'Hold', client: 'Assigning...' },
 ];
 
 const statusColor: Record<Row['status'], BadgeColor> = { Available: 'success', Reserved: 'error', Hold: 'warning' };
@@ -204,13 +206,13 @@ export default function ComponentsShowcase() {
             isDisabled
             options={[{ id: 'admin-1', label: 'admin@turnovivo.com' }]}
           />
-          <I18nProvider locale="en-GB">
+          <I18nProvider locale={APP_LOCALE}>
             <DatePicker
               label="Appointment date"
               helperText="Open the calendar to see availability per day."
               value={date}
               onChange={setDate}
-              minValue={today(getLocalTimeZone())}
+              minValue={getBusinessToday()}
               getDateAvailability={sampleAvailability}
             />
           </I18nProvider>
@@ -220,9 +222,9 @@ export default function ComponentsShowcase() {
 
       <Demo title="Card">
         <div className={styles.cards}>
-          <Card title="09:00 A.M." badges={[{ children: 'Available', color: 'success' }]} action={{ children: 'Reserve', variant: 'filled', onPress: () => wait(1500) }} />
-          <Card title="09:30 A.M." badges={[{ children: 'Your turn', color: 'success', appearance: 'solid' }]} action={{ children: 'Cancel appointment', variant: 'outlined' }} />
-          <Card title="10:00 A.M." badges={[{ children: 'On hold', color: 'warning' }, { children: 'Waiting', color: 'warning', appearance: 'solid' }]} action={{ children: 'On hold for you', isDisabled: true }} />
+          <Card title="9:00 AM" badges={[{ children: 'Available', color: 'success' }]} action={{ children: 'Reserve', variant: 'filled', onPress: () => wait(1500) }} />
+          <Card title="9:30 AM" badges={[{ children: 'Your turn', color: 'success', appearance: 'solid' }]} action={{ children: 'Cancel appointment', variant: 'outlined' }} />
+          <Card title="10:00 AM" badges={[{ children: 'On hold', color: 'warning' }, { children: 'Waiting', color: 'warning', appearance: 'solid' }]} action={{ children: 'On hold for you', isDisabled: true }} />
         </div>
       </Demo>
 
@@ -302,7 +304,7 @@ export default function ComponentsShowcase() {
               </div>
               <Input label="Search" placeholder="Search appointments" />
               <div className={styles.skeletonSamples}>
-                <Skeleton variant="circular" width={40} height={40} />
+                <Skeleton variant="circular" width="var(--size-40)" height="var(--size-40)" />
                 <Skeleton variant="rectangular" height="var(--size-32)" />
                 <Skeleton variant="text" width="72%" />
                 <Skeleton variant="text" width="48%" isAnimated={false} />

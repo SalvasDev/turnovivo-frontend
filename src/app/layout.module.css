@@ -21,7 +21,7 @@
 
 .skipLink {
   position: fixed;
-  z-index: 100;
+  z-index: var(--z-index-skip-link);
   inset-block-start: var(--space-8);
   inset-inline-start: var(--space-8);
   padding: var(--space-12) var(--space-16);

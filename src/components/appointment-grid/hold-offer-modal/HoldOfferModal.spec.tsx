@@ -25,7 +25,7 @@ describe('HoldOfferModal', () => {
     expect(onDecline).not.toHaveBeenCalled();
   });
 
-  it('keeps focus inside and does not dismiss on Escape or an outside click', async () => {
+  it('traps focus and ignores outside clicks', async () => {
     const user = userEvent.setup();
     const onDecline = vi.fn();
     const onConfirm = vi.fn();
@@ -36,13 +36,35 @@ describe('HoldOfferModal', () => {
     expect(screen.getByRole('button', { name: 'Claim' })).toHaveFocus();
     await user.tab();
     expect(decline).toHaveFocus();
-    await user.keyboard('{Escape}');
     const dialog = screen.getByRole('alertdialog');
     await user.click(dialog.parentElement!.parentElement!);
     expect(dialog).toBeInTheDocument();
     expect(screen.queryByRole('button', { name: 'Background action' })).not.toBeInTheDocument();
     expect(onDecline).not.toHaveBeenCalled();
     expect(onConfirm).not.toHaveBeenCalled();
+  });
+
+  it('declines with Escape and returns focus to where the user was', async () => {
+    const user = userEvent.setup();
+    function Harness() {
+      const [open, setOpen] = useState(false);
+      return (
+        <>
+          <button onClick={() => setOpen(true)}>Reserve</button>
+          {open && <HoldOfferModal countdown={20} onDecline={() => setOpen(false)} onConfirm={vi.fn()} />}
+        </>
+      );
+    }
+    render(<Harness />);
+    const trigger = screen.getByRole('button', { name: 'Reserve' });
+    trigger.focus();
+    await user.keyboard('{Enter}');
+    await waitFor(() => expect(screen.getByRole('button', { name: 'Decline' })).toHaveFocus());
+
+    await user.keyboard('{Escape}');
+
+    await waitFor(() => expect(screen.queryByRole('alertdialog')).not.toBeInTheDocument());
+    await waitFor(() => expect(trigger).toHaveFocus());
   });
 
   it('preserves both existing actions while the countdown is running', async () => {

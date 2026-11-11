@@ -1,81 +1,30 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState } from 'react';
 import type { AppointmentSlot } from '@/types';
 import { useUI } from '@/context/UIContext';
+import { useLiveSlots } from '@/hooks/useLiveSlots';
+import { useNow } from '@/hooks/useNow';
 import { apiService } from '@/services/api';
+import { getErrorMessage } from '@/services/http-client';
 import { Menu, MenuItem, MenuTrigger, Popover } from 'react-aria-components';
 import { Badge, Button, Icon, Table, type TableColumn } from '@/design-system';
 import ConnectionNotice from '@/components/connection-notice';
+import { formatShortDate as formatDate, formatTime, formatTimeRange } from '@/domain/format';
+import { ADMIN_SLOT_STATUS_LABEL, getUpcomingSlots, SLOT_STATUS_TONE } from '@/domain/slots';
 import styles from './AdminDashboardClient.module.css';
-
-
-function getErrorMessage(err: unknown, fallback: string) {
-  if (err instanceof Error && err.message) {
-    return err.message;
-  }
-  return fallback;
-}
 
 interface AdminDashboardClientProps {
   initialSlots: AppointmentSlot[];
   businessId: string;
-  token: string;
 }
 
-export default function AdminDashboardClient({ initialSlots, businessId, token }: AdminDashboardClientProps) {
+export default function AdminDashboardClient({ initialSlots, businessId }: AdminDashboardClientProps) {
   const { success, error, loading, confirm } = useUI();
-  const [slots, setSlots] = useState<AppointmentSlot[]>(initialSlots);
+  const { slots, isOffline, reload, invalidate } = useLiveSlots({ businessId, initialSlots, authenticated: true });
+  const upcomingSlots = getUpcomingSlots(slots, useNow());
   const [loadingSlotId, setLoadingSlotId] = useState<string | null>(null);
-  const [isOffline, setIsOffline] = useState(false);
-  const slotsRefreshRef = useRef<() => Promise<void>>(async () => undefined);
 
-  const formatTime = (isoString: string) => {
-    const parts = new Intl.DateTimeFormat('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true,
-    }).formatToParts(new Date(isoString));
-    return parts.map(part => part.type === 'dayPeriod'
-      ? (part.value === 'AM' ? 'a.m.' : 'p.m.')
-      : part.value.replace(/\s+/g, ' ')).join('');
-  };
-  const formatDate = (isoString: string) => new Intl.DateTimeFormat('en-US', {
-    weekday: 'short',
-    month: 'short',
-    day: 'numeric',
-  }).format(new Date(isoString));
-  useEffect(() => {
-    let cancelled = false;
-    let request: Promise<void> | null = null;
-    const fetchFreshData = (): Promise<void> => {
-      if (request) return request;
-      request = (async () => {
-        try {
-          const freshSlots = await apiService.getAvailableSlots(businessId, token);
-          if (cancelled) return;
-          setSlots(freshSlots);
-          setIsOffline(false);
-        } catch {
-          if (!cancelled) setIsOffline(true);
-        } finally {
-          request = null;
-        }
-      })();
-      return request;
-    };
-
-    slotsRefreshRef.current = fetchFreshData;
-    const interval = setInterval(() => { void fetchFreshData(); }, 3000);
-
-    return () => {
-      cancelled = true;
-      clearInterval(interval);
-      if (slotsRefreshRef.current === fetchFreshData) {
-        slotsRefreshRef.current = async () => undefined;
-      }
-    };
-  }, [businessId, token]);
   const handleForceCancel = async (slot: AppointmentSlot) => {
     if (loadingSlotId !== null) return;
     const appointmentId = slot.appointment?.id;
@@ -100,7 +49,8 @@ export default function AdminDashboardClient({ initialSlots, businessId, token }
     setLoadingSlotId(slot.id);
     const stopLoadingToast = loading('Cancelling appointment...');
     try {
-      const data = await apiService.cancelAppointment(appointmentId, token);
+      const data = await apiService.cancelAppointment(appointmentId);
+      invalidate();
 
       success(`Appointment cancelled by admin. ${data.message ?? ''}`.trim());
     } catch (err: unknown) {
@@ -119,13 +69,13 @@ export default function AdminDashboardClient({ initialSlots, businessId, token }
     },
     {
       id: 'slot', header: 'Slot', width: '25%',
-      renderCell: slot => <span className={styles.time}>{formatTime(slot.startTime)} - {formatTime(slot.endTime)}</span>,
+      renderCell: slot => <span className={styles.time}>{formatTimeRange(slot.startTime, slot.endTime)}</span>,
     },
     {
       id: 'status', header: 'Status', width: '15%',
       renderCell: slot => (
-        <Badge className={styles.status} color={slot.status === 'AVAILABLE' ? 'success' : slot.status === 'HOLD' ? 'warning' : 'error'}>
-          {slot.status === 'AVAILABLE' ? 'Active' : slot.status === 'HOLD' ? 'Hold' : 'Reserved'}
+        <Badge className={styles.status} color={SLOT_STATUS_TONE[slot.status]}>
+          {ADMIN_SLOT_STATUS_LABEL[slot.status]}
         </Badge>
       ),
     },
@@ -146,7 +96,7 @@ export default function AdminDashboardClient({ initialSlots, businessId, token }
             variant="text"
             color="neutral"
             size="small"
-            aria-label={`Actions for ${formatDate(slot.startTime)} ${formatTime(slot.startTime)} - ${formatTime(slot.endTime)}`}
+            aria-label={`Actions for ${formatDate(slot.startTime)} ${formatTimeRange(slot.startTime, slot.endTime)}`}
             isDisabled={loadingSlotId !== null}
             isPending={loadingSlotId === slot.id}
             pendingLabel="Cancelling appointment"
@@ -171,11 +121,11 @@ export default function AdminDashboardClient({ initialSlots, businessId, token }
 
   return (
     <>
-      <ConnectionNotice isOffline={isOffline} onRetry={() => slotsRefreshRef.current()} />
+      <ConnectionNotice isOffline={isOffline} onRetry={reload} />
       <Table
         caption="Appointment status and admin cancellation controls"
         columns={columns}
-        items={slots}
+        items={upcomingSlots}
         getRowId={slot => slot.id}
         emptyMessage="No appointments available."
         aria-busy={loadingSlotId !== null}

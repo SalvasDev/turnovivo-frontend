@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import TokensShowcase from '@/components/design-system-showcase/TokensShowcase';
-import ComponentsShowcase from '@/components/design-system-showcase/ComponentsShowcase';
+import LazyComponentsShowcase from '@/components/design-system-showcase/LazyComponentsShowcase';
 import styles from '@/components/design-system-showcase/Showcase.module.css';
 
 export const metadata: Metadata = {
@@ -20,7 +20,7 @@ export default function DesignSystemPage() {
           </p>
         </header>
         <TokensShowcase />
-        <ComponentsShowcase />
+        <LazyComponentsShowcase />
       </div>
     </div>
   );

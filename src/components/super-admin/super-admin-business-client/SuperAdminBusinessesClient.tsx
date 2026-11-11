@@ -1,10 +1,10 @@
 'use client';
 
-import { useCallback, useState } from 'react';
+import { useState } from 'react';
 import { Menu, MenuItem, MenuTrigger, Popover } from 'react-aria-components';
 import { useUI } from '@/context/UIContext';
-import { fetchApi, requireValid } from '@/services/api';
-import { parseAdminUser, parseAdminUsers, parseBusinessAdmins } from '@/services/api-parsers';
+import { useSuperAdminDirectory } from '@/hooks/useSuperAdminDirectory';
+import { getErrorMessage } from '@/services/http-client';
 import { Badge, Button, Icon, Table, type TableColumn } from '@/design-system';
 import {
   CreateAdminModal,
@@ -17,64 +17,31 @@ import type { AdminUser, BusinessAdmin } from '@/types';
 
 export type { AdminUser, BusinessAdmin } from '@/types';
 
-function apiFetch(path: string, token: string, init?: RequestInit): Promise<unknown> {
-  return fetchApi(path, {
-    ...init,
-    headers: {
-      ...(init?.headers || {}),
-      Authorization: `Bearer ${token}`,
-    },
-  });
-}
-
 interface SuperAdminBusinessesClientProps {
-  token: string;
   initialBusinesses: BusinessAdmin[];
   initialAdmins: AdminUser[];
 }
 
-function getErrorMessage(err: unknown, fallback: string) {
-  if (err instanceof Error && err.message) {
-    return err.message;
-  }
-  return fallback;
-}
-
 export default function SuperAdminBusinessesClient({
-  token,
   initialBusinesses,
   initialAdmins,
 }: SuperAdminBusinessesClientProps) {
   const { success, error, loading, confirm } = useUI();
-
-  const [businesses, setBusinesses] = useState<BusinessAdmin[]>(initialBusinesses);
-  const [admins, setAdmins] = useState<AdminUser[]>(initialAdmins);
+  const directory = useSuperAdminDirectory(initialBusinesses, initialAdmins);
+  const { businesses, admins } = directory;
   const [submitting, setSubmitting] = useState(false);
   const [modal, setModal] = useState<'admin' | 'company' | null>(null);
   const [editingBusiness, setEditingBusiness] = useState<BusinessAdmin | undefined>();
 
-  const refresh = useCallback(async () => {
+  const refresh = async () => {
     try {
-      const [biz, adm] = await Promise.all([
-        apiFetch('/businesses', token, { cache: 'no-store' }).then(payload => requireValid(parseBusinessAdmins(payload))),
-        apiFetch('/admin/users?role=ADMIN', token, { cache: 'no-store' }).then(payload => requireValid(parseAdminUsers(payload))),
-      ]);
-      setBusinesses(biz);
-      setAdmins(adm);
+      await directory.refresh();
     } catch (err: unknown) {
       error(getErrorMessage(err, 'Unable to load the latest data.'));
     }
-  }, [token, error]);
-
-  const registerAdmin = async (values: AdminFormValues) => {
-    const admin = requireValid(parseAdminUser(await apiFetch('/admin/users', token, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email: values.email.trim(), password: values.password }),
-    })));
-    setAdmins(previous => [...previous.filter(item => item.id !== admin.id), admin].sort((first, second) => first.email.localeCompare(second.email)));
-    return admin;
   };
+
+  const registerAdmin = (values: AdminFormValues) => directory.createAdmin(values.email.trim(), values.password);
 
   const handleCreateAdmin = async (values: AdminFormValues) => {
     if (submitting) return;
@@ -94,10 +61,11 @@ export default function SuperAdminBusinessesClient({
     setSubmitting(true);
     try {
       const ownerId = values.newOwner ? (await registerAdmin(values.newOwner)).id : values.ownerId;
-      await apiFetch(editingBusiness ? `/businesses/${editingBusiness.id}` : '/businesses', token, {
-        method: editingBusiness ? 'PUT' : 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: values.name.trim(), slug: values.slug.trim(), ownerId }),
+      await directory.saveBusiness({
+        id: editingBusiness?.id,
+        name: values.name.trim(),
+        slug: values.slug.trim(),
+        ownerId,
       });
       success(editingBusiness ? 'Company updated.' : 'Company created.');
       setModal(null);
@@ -128,20 +96,7 @@ export default function SuperAdminBusinessesClient({
       }
 
       stopLoadingToast = loading(activate ? 'Reactivating company...' : 'Deactivating company...');
-      if (activate) {
-        await apiFetch(`/businesses/${business.id}`, token, {
-          method: 'PUT',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name: business.name,
-            slug: business.slug,
-            ownerId: business.ownerId,
-            active: true,
-          }),
-        });
-      } else {
-        await apiFetch(`/businesses/${business.id}`, token, { method: 'DELETE' });
-      }
+      await directory.setBusinessActive(business, activate);
       success(activate ? 'Company reactivated.' : 'Company deactivated.');
       await refresh();
     } catch (err: unknown) {

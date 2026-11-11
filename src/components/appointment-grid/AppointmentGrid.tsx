@@ -1,14 +1,35 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { AppointmentSlot } from '@/types';
-import Cookies from 'js-cookie';
 import { useUI } from '@/context/UIContext';
-import { ApiError, apiService } from '@/services/api';
-import { getLocalTimeZone, parseDate, today, type CalendarDate } from '@internationalized/date';
+import { useLiveSlots } from '@/hooks/useLiveSlots';
+import { readNow, useNow } from '@/hooks/useNow';
+import { apiService } from '@/services/api';
+import { ApiError, getErrorMessage } from '@/services/http-client';
+import { hasSessionToken } from '@/services/session';
+import { type CalendarDate } from '@internationalized/date';
 import { I18nProvider } from 'react-aria-components';
+import { APP_LOCALE } from '@/config/app';
 import { Button, DatePicker, Divider, Icon, Skeleton, type DateAvailability, type DateValue } from '@/design-system';
 import ConnectionNotice from '@/components/connection-notice';
+import {
+  formatDuration,
+  formatLongDate,
+  formatTime,
+  formatTimeRange,
+  getBusinessToday,
+  getCalendarDate,
+  getDateKey,
+} from '@/domain/format';
+import {
+  getDayAvailability,
+  getUpcomingSlots,
+  hasStarted,
+  isActiveBookingFor,
+  isHoldFor,
+  type LocalBlocks,
+} from '@/domain/slots';
 import styles from './AppointmentGrid.module.css';
 import SlotCard from './slot-card';
 import HoldOfferModal from './hold-offer-modal';
@@ -20,75 +41,53 @@ interface AppointmentGridProps {
   initialLoadComplete?: boolean;
 }
 
-function getErrorMessage(err: unknown, fallback: string) {
-  if (err instanceof Error && err.message) {
-    return err.message;
-  }
-  return fallback;
-}
-
-function isActiveBooking(slot: AppointmentSlot, userId: string, localBlocks: Record<string, string>) {
-  return slot.status === 'RESERVED'
-    && slot.appointment?.customerId === userId
-    && !localBlocks[slot.id]
-    && !slot.slotBlocks?.some((block) => block.customerId === userId);
-}
-
-function formatDuration(startTime: string, endTime: string) {
-  const totalMinutes = Math.max(0, Math.round((Date.parse(endTime) - Date.parse(startTime)) / 60_000));
-  const hours = Math.floor(totalMinutes / 60);
-  const minutes = totalMinutes % 60;
-  if (hours === 0) return `${minutes} minutes`;
-  return minutes === 0 ? `${hours} ${hours === 1 ? 'hour' : 'hours'}` : `${hours} hr ${minutes} min`;
-}
-
 export default function AppointmentGrid({ initialSlots, businessId, serverUserId, initialLoadComplete = false }: AppointmentGridProps) {
   const { success, error, info, warning, loading, confirm } = useUI();
-  const [slots, setSlots] = useState<AppointmentSlot[]>(initialSlots);
-  const [isSyncing, setIsSyncing] = useState(!initialLoadComplete && initialSlots.length === 0);
-  const [isOffline, setIsOffline] = useState(false);
   const [loadingSlotId, setLoadingSlotId] = useState<string | null>(null);
   const [activeHoldSlot, setActiveHoldSlot] = useState<string | null>(null);
   const [countdown, setCountdown] = useState<number>(30);
   const [rejectedSlotIds, setRejectedSlotIds] = useState<string[]>([]);
-  const [localBlocks, setLocalBlocks] = useState<Record<string, 'CANCELLED' | 'DECLINED'>>({});
+  const [localBlocks, setLocalBlocks] = useState<LocalBlocks>({});
   const [selectedDate, setSelectedDate] = useState<CalendarDate | null>(null);
-  const slotsRefreshRef = useRef<() => Promise<void>>(async () => undefined);
-  const initialBookedSlot = initialSlots.find((slot) => isActiveBooking(slot, serverUserId, localBlocks));
+  const initialBookedSlot = initialSlots.find((slot) => isActiveBookingFor(slot, serverUserId, localBlocks));
 
   const [myBookedSlotId, setMyBookedSlotId] = useState<string | null>(initialBookedSlot ? initialBookedSlot.id : null);
   const [myWaitlistSlotIds, setMyWaitlistSlotIds] = useState<string[]>([]);
 
-  const formatTime = (isoString: string) => {
-    const parts = new Intl.DateTimeFormat('en-US', {
-      hour: '2-digit',
-      minute: '2-digit',
-      hour12: true,
-    }).formatToParts(new Date(isoString));
-    return parts.map((part) => part.type === 'dayPeriod'
-      ? (part.value === 'AM' ? 'A.M.' : 'P.M.')
-      : part.value.replace(/\s+/g, ' ')).join('');
+  const { slots, setSlots, isOffline, isSyncing, reload, invalidate } = useLiveSlots({
+    businessId,
+    initialSlots,
+    fetchOnMount: true,
+    initialSyncing: !initialLoadComplete && initialSlots.length === 0,
+    onSlots: (freshSlots) => {
+      const freshMine = freshSlots.find((slot) => isActiveBookingFor(slot, serverUserId, localBlocks));
+      setMyBookedSlotId(freshMine?.id ?? null);
+      const myHold = freshSlots.find((slot) => isHoldFor(slot, serverUserId));
+      if (!myHold) {
+        setActiveHoldSlot(null);
+      } else if (!activeHoldSlot && !rejectedSlotIds.includes(myHold.id)) {
+        setActiveHoldSlot(myHold.id);
+        setCountdown(30);
+      }
+    },
+  });
+
+  // Each day change fetches fresh availability; a newer pick cancels the previous request.
+  const selectDate = (date: CalendarDate | null) => {
+    setSelectedDate(date);
+    void reload();
   };
 
-  const formatDateHeader = (isoString: string) => {
-    const date = new Date(isoString);
-    return date.toLocaleDateString('en-US', {
-      weekday: 'long',
-      day: 'numeric',
-      month: 'long',
-    });
-  };
+  const now = useNow();
+  const businessToday = getBusinessToday();
+  const upcomingSlots = getUpcomingSlots(slots, now);
+  // Partial typing and days that turned past at midnight stay in the field (flagged by minValue) but never filter.
+  const activeDate = selectedDate && selectedDate.compare(businessToday) >= 0 ? selectedDate : null;
 
-  const formatTimeRange = (slot: AppointmentSlot) => `${formatTime(slot.startTime)} - ${formatTime(slot.endTime)}`;
-
-  const getDateKey = (isoString: string) => {
-    return new Date(isoString).toISOString().split('T')[0];
-  };
-
-  const visibleSlots = selectedDate
-    ? slots.filter((slot) => getDateKey(slot.startTime) === selectedDate.toString())
-    : slots;
-  const myBookedSlot = slots.find((slot) => slot.id === myBookedSlotId);
+  const visibleSlots = activeDate
+    ? upcomingSlots.filter((slot) => getDateKey(slot.startTime) === activeDate.toString())
+    : upcomingSlots;
+  const myBookedSlot = upcomingSlots.find((slot) => slot.id === myBookedSlotId);
   const groupedSlots = visibleSlots.reduce((acc, slot) => {
     const dateKey = getDateKey(slot.startTime);
     if (!acc[dateKey]) {
@@ -100,67 +99,13 @@ export default function AppointmentGrid({ initialSlots, businessId, serverUserId
 
   const sortedDates = Object.keys(groupedSlots).sort();
 
-  const slotsByDate = slots.reduce((acc, slot) => {
+  const slotsByDate = upcomingSlots.reduce((acc, slot) => {
     (acc[getDateKey(slot.startTime)] ??= []).push(slot);
     return acc;
   }, {} as Record<string, AppointmentSlot[]>);
 
-  const isBlockedForMe = (slot: AppointmentSlot) =>
-    !!localBlocks[slot.id] || !!slot.slotBlocks?.some((block) => block.customerId === serverUserId);
-
-  const getDateAvailability = (date: DateValue): DateAvailability => {
-    const daySlots = slotsByDate[date.toString()];
-    if (!daySlots?.length) return 'none';
-    const open = daySlots.filter((slot) => !isBlockedForMe(slot));
-    if (!open.length) return 'blocked';
-    const hasOpenOrMine = open.some((slot) => slot.status === 'AVAILABLE' || isActiveBooking(slot, serverUserId, localBlocks));
-    return hasOpenOrMine ? 'available' : 'waitlist';
-  };
-  useEffect(() => {
-    let cancelled = false;
-    let request: Promise<void> | null = null;
-    const fetchFreshData = (): Promise<void> => {
-      if (request) return request;
-      request = (async () => {
-        try {
-          const freshSlots = await apiService.getAvailableSlots(businessId);
-          if (cancelled) return;
-          setIsOffline(false);
-          setSlots(freshSlots);
-          const freshMine = freshSlots.find((slot) => isActiveBooking(slot, serverUserId, localBlocks));
-          setMyBookedSlotId(freshMine?.id ?? null);
-          const myHold = freshSlots.find(
-            (s) => s.status === 'HOLD' && s.appointment?.customerId === serverUserId,
-          );
-          if (myHold) {
-            if (!activeHoldSlot && !rejectedSlotIds.includes(myHold.id)) {
-              setActiveHoldSlot(myHold.id);
-              setCountdown(30);
-            }
-          } else {
-            setActiveHoldSlot(null);
-          }
-        } catch {
-          if (!cancelled) setIsOffline(true);
-        } finally {
-          if (!cancelled) setIsSyncing(false);
-          request = null;
-        }
-      })();
-      return request;
-    };
-
-    slotsRefreshRef.current = fetchFreshData;
-    void fetchFreshData();
-    const interval = setInterval(() => { void fetchFreshData(); }, 3000);
-    return () => {
-      cancelled = true;
-      clearInterval(interval);
-      if (slotsRefreshRef.current === fetchFreshData) {
-        slotsRefreshRef.current = async () => undefined;
-      }
-    };
-  }, [businessId, activeHoldSlot, serverUserId, myBookedSlotId, rejectedSlotIds, localBlocks]);
+  const getDateAvailability = (date: DateValue): DateAvailability =>
+    getDayAvailability(slotsByDate[date.toString()], serverUserId, localBlocks);
   useEffect(() => {
     if (!activeHoldSlot) return;
     const timer = setInterval(() => {
@@ -180,14 +125,18 @@ export default function AppointmentGrid({ initialSlots, businessId, serverUserId
   }, [activeHoldSlot]);
 
   const handleSlotAction = async (slot: AppointmentSlot) => {
-    const token = Cookies.get('turnovivo_token');
-    if (!token) {
+    if (!hasSessionToken()) {
       info('Sign in to manage appointments.');
       window.location.assign('/login');
       return;
     }
 
     const isAvailable = slot.status === 'AVAILABLE';
+
+    if (hasStarted(slot, readNow())) {
+      warning('This time has already started. Choose a later slot.');
+      return;
+    }
 
     if (isAvailable && myBookedSlotId !== null) {
       warning('You can only have one active booking at a time.');
@@ -201,7 +150,8 @@ export default function AppointmentGrid({ initialSlots, businessId, serverUserId
 
     try {
       if (isAvailable) {
-        const bookingData = await apiService.bookAppointment(slot.id, token);
+        const bookingData = await apiService.bookAppointment(slot.id);
+        invalidate();
         success('Appointment booked.');
         setMyBookedSlotId(slot.id);
         setSlots((prev) => 
@@ -219,23 +169,14 @@ export default function AppointmentGrid({ initialSlots, businessId, serverUserId
           )
         );
       } else {
-        await apiService.joinWaitlist(slot.id, token);
+        await apiService.joinWaitlist(slot.id);
+        invalidate();
         success('You joined the waitlist for this time.');
         setMyWaitlistSlotIds((prev) => [...prev, slot.id]);
       }
     } catch (err: unknown) {
       if (isAvailable && err instanceof ApiError && err.status === 409) {
-        let availabilityRefreshed = false;
-        try {
-          const freshSlots = await apiService.getAvailableSlots(businessId);
-          setSlots(freshSlots);
-          const freshMine = freshSlots.find((freshSlot) => isActiveBooking(freshSlot, serverUserId, localBlocks));
-          setMyBookedSlotId(freshMine?.id ?? null);
-          availabilityRefreshed = true;
-        } catch {
-          availabilityRefreshed = false;
-        }
-
+        const availabilityRefreshed = await reload();
         warning(availabilityRefreshed
           ? 'Someone just booked this time. Availability has been updated; choose another slot.'
           : 'Someone just booked this time. Please try refreshing availability.');
@@ -250,7 +191,6 @@ export default function AppointmentGrid({ initialSlots, businessId, serverUserId
     }
   };
   const handleCancelAppointment = async (slot: AppointmentSlot) => {
-    const token = Cookies.get('turnovivo_token');
     const appointmentId = slot.appointment?.id;
 
     if (!appointmentId) {
@@ -272,7 +212,8 @@ export default function AppointmentGrid({ initialSlots, businessId, serverUserId
 
     setLoadingSlotId(slot.id);
     try {
-      await apiService.cancelAppointment(appointmentId, token || '');
+      await apiService.cancelAppointment(appointmentId);
+      invalidate();
 
       success('Your appointment was cancelled.');
       setMyBookedSlotId(null);
@@ -292,8 +233,6 @@ export default function AppointmentGrid({ initialSlots, businessId, serverUserId
     }
   };
   const handleLeaveWaitlist = async (slotId: string) => {
-    const token = Cookies.get('turnovivo_token');
-
     const shouldLeave = await confirm({
       title: 'Leave waitlist',
       description: 'Do you want to leave the waitlist for this time? You will lose your place in line.',
@@ -308,7 +247,8 @@ export default function AppointmentGrid({ initialSlots, businessId, serverUserId
 
     setLoadingSlotId(slotId);
     try {
-      await apiService.leaveWaitlist(slotId, token || '');
+      await apiService.leaveWaitlist(slotId);
+      invalidate();
 
       success('You left the waitlist.');
       setMyWaitlistSlotIds((prev) => prev.filter((id) => id !== slotId));
@@ -322,12 +262,12 @@ export default function AppointmentGrid({ initialSlots, businessId, serverUserId
   };
 
   const handleConfirmHold = async () => {
-    const token = Cookies.get('turnovivo_token');
     const slotId = activeHoldSlot;
     if (!slotId) return;
     const stopLoadingToast = loading('Claiming appointment...');
     try {
-      await apiService.confirmHold(slotId, token || '');
+      await apiService.confirmHold(slotId);
+      invalidate();
       success('Appointment claimed.');
       setMyBookedSlotId(slotId);
       setMyWaitlistSlotIds((prev) => prev.filter((id) => id !== slotId));
@@ -348,23 +288,23 @@ export default function AppointmentGrid({ initialSlots, businessId, serverUserId
     setMyWaitlistSlotIds((prev) => prev.filter((id) => id !== slotId));
     setActiveHoldSlot(null);
 
-    const token = Cookies.get('turnovivo_token');
     try {
-      await apiService.declineHold(slotId, token || '');
+      await apiService.declineHold(slotId);
+      invalidate();
     } catch (err: unknown) {
       error(getErrorMessage(err, 'Unable to decline this appointment.'));
     }
   };
 
   return (
-    <section className={styles.agenda} aria-label="Available appointments">
+    <section className={styles.agenda} aria-label="Available appointments" data-offline={isOffline || undefined}>
       <div className={styles.toolbarRow}>
         <div className={styles.toolbar}>
-          <I18nProvider locale="en-GB">
+          <I18nProvider locale={APP_LOCALE}>
             <DatePicker
               value={selectedDate}
-              onChange={setSelectedDate}
-              minValue={today(getLocalTimeZone())}
+              onChange={selectDate}
+              minValue={businessToday}
               getDateAvailability={getDateAvailability}
               errorMessage="Choose a date that has appointments."
             />
@@ -382,11 +322,11 @@ export default function AppointmentGrid({ initialSlots, businessId, serverUserId
             <dl className={styles.summaryDetails}>
               <div className={styles.summaryField}>
                 <dt>Date</dt>
-                <dd>{formatDateHeader(myBookedSlot.startTime)}</dd>
+                <dd>{formatLongDate(myBookedSlot.startTime)}</dd>
               </div>
               <div className={styles.summaryField}>
                 <dt>Time</dt>
-                <dd>{formatTimeRange(myBookedSlot)}</dd>
+                <dd>{formatTimeRange(myBookedSlot.startTime, myBookedSlot.endTime)}</dd>
               </div>
               <div className={styles.summaryField}>
                 <dt>Staff ID</dt>
@@ -401,7 +341,7 @@ export default function AppointmentGrid({ initialSlots, businessId, serverUserId
               variant="outlined"
               size="small"
               className={styles.summaryAction}
-              onPress={() => setSelectedDate(parseDate(getDateKey(myBookedSlot.startTime)))}
+              onPress={() => selectDate(getCalendarDate(myBookedSlot.startTime))}
             >
               View appointment
             </Button>
@@ -409,7 +349,7 @@ export default function AppointmentGrid({ initialSlots, businessId, serverUserId
         )}
       </div>
       <Divider />
-      <ConnectionNotice isOffline={isOffline} onRetry={() => slotsRefreshRef.current()} />
+      <ConnectionNotice isOffline={isOffline} onRetry={reload} />
       {isSyncing && slots.length === 0 ? (
         <div className={styles.loadingState} role="status" aria-label="Loading appointment slots" aria-busy="true">
           <div className={styles.loadingDateGroup} aria-hidden="true">
@@ -429,16 +369,16 @@ export default function AppointmentGrid({ initialSlots, businessId, serverUserId
         </div>
       ) : visibleSlots.length === 0 ? (
         <div role="status" className={styles.empty}>
-          {selectedDate ? 'No appointments available for this date.' : 'No appointments available right now.'}
+          {activeDate ? 'No appointments available for this date.' : 'No appointments available right now.'}
         </div>
       ) : null}
       <div className={styles.dates}>
         {sortedDates.map((dateKey) => (
           <div key={dateKey} className={styles.dateGroup}>
             <h2 className={styles.dateTitle}>
-              {formatDateHeader(groupedSlots[dateKey][0].startTime)}
+              {formatLongDate(groupedSlots[dateKey][0].startTime)}
             </h2>
-            <ul className={styles.slots} aria-label={formatDateHeader(groupedSlots[dateKey][0].startTime)}>
+            <ul className={styles.slots} aria-label={formatLongDate(groupedSlots[dateKey][0].startTime)}>
               {groupedSlots[dateKey].map((slot) => (
                 <SlotCard
                   key={slot.id}

@@ -3,23 +3,10 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { apiService } from '@/services/api';
+import { getErrorMessage } from '@/services/http-client';
 import { Button, Input } from '@/design-system';
 import styles from '@/design-system/layouts/AuthLayout.module.css';
-import { getEmailError } from '../validation';
-
-function validatePassword(value: string) {
-  if (!value) return 'Enter a password.';
-  return value.length >= 8 && /[0-9]/.test(value)
-    ? null
-    : 'Use at least 8 characters, including one number.';
-}
-
-function getErrorMessage(err: unknown, fallback: string) {
-  if (err instanceof Error && err.message) {
-    return err.message;
-  }
-  return fallback;
-}
+import { getEmailError, getPasswordError, getServerErrorField } from '@/domain/validation';
 
 export default function RegisterPage() {
   const [email, setEmail] = useState('');
@@ -50,11 +37,15 @@ export default function RegisterPage() {
     e.preventDefault();
     if (submitting || success) return;
     const nextEmailError = getEmailError(email);
-    const nextPasswordError = validatePassword(password);
+    const nextPasswordError = getPasswordError(password);
     setEmailError(nextEmailError);
     setPasswordError(nextPasswordError);
     setFormError(null);
-    if (nextEmailError || nextPasswordError) return;
+    if (nextEmailError || nextPasswordError) {
+      // Focus lands on the first invalid field so its linked error is announced.
+      document.getElementById(nextEmailError ? emailInputId : passwordInputId)?.focus();
+      return;
+    }
     setSubmitting(true);
 
     try {
@@ -68,8 +59,9 @@ export default function RegisterPage() {
     } catch (err: unknown) {
       const message = getErrorMessage(err, 'Unable to create your account. Please try again.');
       setFormError(message);
-      if (/e-?mail/i.test(message)) setEmailError(message);
-      else if (/password/i.test(message)) setPasswordError(message);
+      const field = getServerErrorField(message, ['email', 'password'] as const);
+      if (field === 'email') setEmailError(message);
+      else if (field === 'password') setPasswordError(message);
     } finally {
       setSubmitting(false);
     }
@@ -136,7 +128,7 @@ export default function RegisterPage() {
             helperText="At least 8 characters, including one number"
             isInvalid={!!passwordError}
             errorMessage={passwordError}
-            onBlur={() => setPasswordError(validatePassword(password))}
+            onBlur={() => setPasswordError(getPasswordError(password))}
           />
           <Button
             type="submit"

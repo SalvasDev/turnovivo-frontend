@@ -1,11 +1,9 @@
 'use client';
 
 import { createContext, useCallback, useContext, useMemo, useRef, useSyncExternalStore, ReactNode } from 'react';
-import Cookies from 'js-cookie';
 import { apiService } from '@/services/api';
 import { parseTokenClaims } from '@/services/api-parsers';
-
-const TOKEN_COOKIE = 'turnovivo_token';
+import { clearSessionToken, getSessionToken, setSessionToken } from '@/services/session';
 
 interface User {
   id: string;
@@ -31,7 +29,7 @@ const subscribe = (listener: () => void) => {
   return () => listeners.delete(listener);
 };
 const notify = () => listeners.forEach((listener) => listener());
-const getTokenSnapshot = () => Cookies.get(TOKEN_COOKIE) ?? null;
+const getTokenSnapshot = () => getSessionToken() ?? null;
 // Undefined on the server marks the session as unknown until the client hydrates.
 const getServerTokenSnapshot = () => undefined;
 
@@ -47,23 +45,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [token]);
 
   const login = useCallback((newToken: string) => {
-    const isHttps = window.location.protocol === 'https:';
-    Cookies.set(TOKEN_COOKIE, newToken, { expires: 1, secure: isHttps, sameSite: 'strict' });
+    setSessionToken(newToken);
     notify();
   }, []);
 
   const clearSession = useCallback(() => {
-    Cookies.remove(TOKEN_COOKIE);
+    clearSessionToken();
     notify();
   }, []);
 
   const logout = useCallback(async () => {
     if (loggingOutRef.current) return;
     loggingOutRef.current = true;
-    const currentToken = Cookies.get(TOKEN_COOKIE);
-    if (currentToken) {
+    if (getSessionToken()) {
       // The local session is cleared even if the server cannot be notified.
-      await apiService.logout(currentToken).catch(() => undefined);
+      await apiService.logout().catch(() => undefined);
     }
     clearSession();
     window.location.assign('/login');

@@ -52,6 +52,10 @@ describe('RegisterPage', () => {
 
     expect(await screen.findByText('Enter your email address.')).toBeInTheDocument();
     expect(screen.getByText('Enter a password.')).toBeInTheDocument();
+    const email = screen.getByRole('textbox', { name: 'Email' });
+    expect(email).toHaveFocus();
+    expect(email).toHaveAttribute('aria-invalid', 'true');
+    expect(email).toHaveAccessibleDescription('Enter your email address.');
     expect(apiService.registerCustomer).not.toHaveBeenCalled();
   });
 

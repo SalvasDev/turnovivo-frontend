@@ -5,27 +5,12 @@ import { useSearchParams } from 'next/navigation';
 import { Suspense, useEffect, useState } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { ApiError, apiService } from '@/services/api';
-import { DEFAULT_DEMO_PATH } from '@/config/app';
+import { getErrorMessage } from '@/services/http-client';
 import { Button, Input, Spinner } from '@/design-system';
 import styles from '@/design-system/layouts/AuthLayout.module.css';
-import { getEmailError } from '../validation';
+import { getEmailError } from '@/domain/validation';
+import { getHomePathForRole, getSafeReturnPath } from '@/domain/access';
 import { parseTokenClaims } from '@/services/api-parsers';
-
-function getErrorMessage(err: unknown, fallback: string) {
-  if (err instanceof Error && err.message) {
-    return err.message;
-  }
-  return fallback;
-}
-
-/** Only same-origin paths are allowed, preventing open redirects through `?next=`. */
-function getSafeNextPath(value: string | null) {
-  if (!value || !value.startsWith('/') || value.startsWith('//') || value.startsWith('/\\')) {
-    return null;
-  }
-  return value;
-}
-
 
 function LoginForm() {
   const searchParams = useSearchParams();
@@ -38,8 +23,7 @@ function LoginForm() {
   const [submitting, setSubmitting] = useState(false);
   
   const { login, clearSession } = useAuth();
-  const requestedPath = getSafeNextPath(searchParams.get('next'));
-  const nextPath = requestedPath ?? DEFAULT_DEMO_PATH;
+  const requestedPath = getSafeReturnPath(searchParams.get('next'));
   const emailInputId = 'login-email';
   const passwordInputId = 'login-password';
   const errorId = 'login-error-message';
@@ -70,6 +54,8 @@ function LoginForm() {
     setPasswordError(nextPasswordError);
     if (nextEmailError || nextPasswordError) {
       setError(null);
+      // Focus lands on the first invalid field so its linked error is announced.
+      document.getElementById(nextEmailError ? emailInputId : passwordInputId)?.focus();
       return;
     }
 
@@ -80,10 +66,7 @@ function LoginForm() {
       const data = await apiService.login(email, password);
       login(data.accessToken);
 
-      let target = nextPath;
-      if (!requestedPath && parseTokenClaims(data.accessToken)?.role === 'SUPER_ADMIN') {
-        target = '/super-admin';
-      }
+      const target = requestedPath ?? getHomePathForRole(parseTokenClaims(data.accessToken)?.role);
 
       // Stays pending until navigation so the form cannot be submitted twice.
       setTimeout(() => {

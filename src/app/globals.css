@@ -12,7 +12,7 @@
   }
 
   html {
-    line-height: 1.5;
+    line-height: var(--line-height-body-ratio);
     -webkit-text-size-adjust: 100%;
     tab-size: 4;
   }
@@ -42,7 +42,7 @@
   samp,
   pre {
     font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-    font-size: 1em;
+    font-size: var(--size-1em);
   }
 
   ol,
@@ -64,7 +64,7 @@
   textarea,
   ::file-selector-button {
     border-radius: 0;
-    background: transparent;
+    background: var(--surface-transparent);
     color: inherit;
     font: inherit;
     letter-spacing: inherit;
@@ -81,7 +81,7 @@
   }
 
   ::placeholder {
-    opacity: 1;
+    opacity: var(--opacity-visible);
   }
 
   img,
@@ -123,9 +123,9 @@
   *,
   *::before,
   *::after {
-    animation-duration: 0.01ms !important;
+    animation-duration: var(--motion-duration-instant) !important;
     animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+    transition-duration: var(--motion-duration-instant) !important;
     scroll-behavior: auto !important;
   }
 }

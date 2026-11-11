@@ -6,6 +6,7 @@ import {
   INVALID_RESPONSE_MESSAGE,
   NETWORK_ERROR_MESSAGE,
 } from './api';
+import { isAbortError } from './http-client';
 
 describe('createSessionExpiredLoginUrl', () => {
   it('preserves the current route, query and hash as a safe return path', () => {
@@ -29,7 +30,7 @@ describe('createSessionExpiredLoginUrl', () => {
     )));
 
     try {
-      await expect(apiService.bookAppointment('slot-1', 'expired-token'))
+      await expect(apiService.bookAppointment('slot-1'))
         .rejects.toMatchObject({ status: 401 });
       expect(Cookies.get('turnovivo_token')).toBeUndefined();
       expect(replace).toHaveBeenCalledWith(
@@ -53,6 +54,16 @@ describe('apiService resilience', () => {
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('Failed to fetch')));
     await expect(apiService.getAvailableSlots('biz-1'))
       .rejects.toMatchObject({ name: 'ApiError', status: 0, message: NETWORK_ERROR_MESSAGE });
+  });
+
+  it('rethrows a cancelled request as an abort instead of an outage', async () => {
+    const controller = new AbortController();
+    vi.stubGlobal('fetch', vi.fn((_url: string, init?: RequestInit) => new Promise((_resolve, reject) => {
+      init?.signal?.addEventListener('abort', () => reject(new DOMException('Aborted', 'AbortError')));
+    })));
+    const request = apiService.getAvailableSlots('biz-1', undefined, controller.signal);
+    controller.abort();
+    await expect(request).rejects.toSatisfy(isAbortError);
   });
 
   it('keeps the status and fallback message when the error body is malformed', async () => {
@@ -90,7 +101,24 @@ describe('apiService resilience', () => {
   });
 
   it('accepts an empty body for message endpoints', async () => {
+    Cookies.set('turnovivo_token', 'token');
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue(new Response(null, { status: 204 })));
-    await expect(apiService.cancelAppointment('app-1', 'token')).resolves.toEqual({});
+    await expect(apiService.cancelAppointment('app-1')).resolves.toEqual({});
+    Cookies.remove('turnovivo_token');
+  });
+
+  it('attaches the session token and rejects authenticated calls without a session', async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response(null, { status: 204 }));
+    vi.stubGlobal('fetch', fetchMock);
+
+    await expect(apiService.joinWaitlist('slot-1')).rejects.toMatchObject({ status: 401 });
+    expect(fetchMock).not.toHaveBeenCalled();
+
+    Cookies.set('turnovivo_token', 'session-token');
+    await apiService.joinWaitlist('slot-1');
+    Cookies.remove('turnovivo_token');
+    const headers = new Headers(fetchMock.mock.calls[0][1]?.headers);
+    expect(headers.get('Authorization')).toBe('Bearer session-token');
+    expect(fetchMock.mock.calls[0][1]?.body).toBe(JSON.stringify({ slotId: 'slot-1' }));
   });
 });

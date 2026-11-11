@@ -11,6 +11,8 @@
   border-color: var(--border-success);
 }
 
+/* Muted surface instead of opacity, which would drop the badge text below 4.5:1. */
 .slotCard[data-slot-status='blocked'] {
-  opacity: 0.5;
+  border-style: dashed;
+  background: var(--surface-secondary);
 }

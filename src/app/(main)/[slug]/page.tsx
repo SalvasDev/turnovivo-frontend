@@ -1,9 +1,8 @@
 
 import { ApiError, apiService } from '@/services/api';
-import { parseTokenClaims } from '@/services/api-parsers';
+import { requireSession } from '@/services/server-session';
 import { AppointmentGrid } from '@/components/appointment-grid';
-import { notFound, redirect } from 'next/navigation';
-import { cookies } from 'next/headers';
+import { notFound } from 'next/navigation';
 import { AppointmentSlot, Business } from '@/types';
 import styles from './page.module.css';
 
@@ -15,17 +14,7 @@ interface PageProps {
 
 export default async function BusinessPage({ params }: PageProps) {
   const { slug } = await params;
-  const cookieStore = await cookies();
-  const token = cookieStore.get('turnovivo_token')?.value;
-
-  if (!token) {
-    redirect(`/login?next=${encodeURIComponent(`/${slug}`)}`);
-  }
-
-  const claims = parseTokenClaims(token);
-  if (!claims) {
-    redirect(`/login?next=${encodeURIComponent(`/${slug}`)}`);
-  }
+  const { claims } = await requireSession(`/${slug}`);
   const currentUserId = claims.sub;
 
   let business: Business;

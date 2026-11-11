@@ -3,6 +3,11 @@
   color: var(--text-primary);
 }
 
+/* Lets the last slots scroll above the floating connection notice instead of hiding under it. */
+.agenda[data-offline] {
+  padding-block-end: calc(var(--size-64) * 2);
+}
+
 .toolbar {
   inline-size: calc(var(--size-64) * 6 + var(--size-24) + var(--size-2) / 2);
   max-inline-size: 100%;
@@ -176,20 +181,12 @@
 @media (max-width: 40rem) {
   .slots {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-12);
   }
 
   .loadingSlots {
     grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 28rem) {
-  .slots {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
-  .loadingSlots {
-    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-12);
   }
 }
 

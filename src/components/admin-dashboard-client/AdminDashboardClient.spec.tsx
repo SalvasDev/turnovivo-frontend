@@ -10,6 +10,9 @@ vi.mock('@/services/api', () => ({
   apiService: { getAvailableSlots: vi.fn(), cancelAppointment: vi.fn() },
 }));
 
+// Fixtures are on 2026-11-13; a pinned clock keeps them upcoming.
+vi.mock('@/hooks/useNow', () => ({ useNow: () => Date.parse('2026-11-12T18:00:00Z') }));
+
 const reservedSlot: AppointmentSlot = {
   id: 'reserved-slot', businessId: 'business-1', staffId: 'staff-1', status: 'RESERVED',
   startTime: '2026-11-13T10:00:00Z', endTime: '2026-11-13T10:30:00Z',
@@ -17,7 +20,7 @@ const reservedSlot: AppointmentSlot = {
 };
 
 function renderDashboard(slots: AppointmentSlot[] = [reservedSlot]) {
-  return render(<UIProvider><AdminDashboardClient initialSlots={slots} businessId="business-1" token="admin-token" /></UIProvider>);
+  return render(<UIProvider><AdminDashboardClient initialSlots={slots} businessId="business-1" /></UIProvider>);
 }
 
 async function openCancelDialog(user: ReturnType<typeof userEvent.setup>) {
@@ -72,7 +75,7 @@ describe('AdminDashboardClient', () => {
     const dialog = await openCancelDialog(user);
     await user.click(within(dialog).getByRole('button', { name: 'Yes, cancel' }));
 
-    expect(apiService.cancelAppointment).toHaveBeenCalledExactlyOnceWith('appointment-1', 'admin-token');
+    expect(apiService.cancelAppointment).toHaveBeenCalledExactlyOnceWith('appointment-1');
     expect(screen.getByRole('table')).toHaveAttribute('aria-busy', 'true');
     expect(screen.getByRole('button', { name: /^Actions for/ })).toBeDisabled();
     expect(screen.getByRole('progressbar', { name: 'Cancelling appointment' })).toBeInTheDocument();
@@ -128,7 +131,7 @@ describe('AdminDashboardClient', () => {
     vi.mocked(apiService.getAvailableSlots).mockResolvedValue([{ ...reservedSlot, status: 'AVAILABLE', appointment: null }]);
     renderDashboard();
     await act(async () => { await vi.advanceTimersByTimeAsync(3000); });
-    expect(apiService.getAvailableSlots).toHaveBeenCalledWith('business-1', 'admin-token');
+    expect(apiService.getAvailableSlots).toHaveBeenCalledWith('business-1', { auth: true }, expect.any(AbortSignal));
     expect(screen.getByText('Active')).toBeInTheDocument();
     expect(screen.queryByText('customer-1')).not.toBeInTheDocument();
     expect(apiService.cancelAppointment).not.toHaveBeenCalled();

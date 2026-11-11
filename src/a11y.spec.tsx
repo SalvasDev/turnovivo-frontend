@@ -18,6 +18,12 @@ vi.mock('next/navigation', () => ({
   usePathname: () => '/',
 }));
 
+// Fixtures are on 2026-11-13; a pinned clock keeps them upcoming.
+vi.mock('@/hooks/useNow', () => ({
+  useNow: () => Date.parse('2026-11-12T18:00:00Z'),
+  readNow: () => Date.parse('2026-11-12T18:00:00Z'),
+}));
+
 vi.mock('next/link', () => ({
   default: ({ children, href, ...props }: { children: ReactNode; href: string } & Omit<AnchorHTMLAttributes<HTMLAnchorElement>, 'href'>) => (
     <a href={href} {...props}>{children}</a>
@@ -83,7 +89,7 @@ describe('Accessibility (axe)', () => {
         <GlobalHeader />
         <main>
           <AppointmentGrid initialSlots={slots} businessId="b-1" serverUserId="u-1" />
-          <AdminDashboardClient initialSlots={slots} businessId="b-1" token="token" />
+          <AdminDashboardClient initialSlots={slots} businessId="b-1" />
         </main>
       </UIProvider>,
     );

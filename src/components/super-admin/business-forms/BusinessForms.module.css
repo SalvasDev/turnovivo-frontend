@@ -18,9 +18,9 @@
 }
 
 .ownerFields .toggle {
-  --button-border-width: 0rem;
-  --button-padding-block: 0rem;
-  --button-padding-inline: 0rem;
+  --button-border-width: var(--size-0);
+  --button-padding-block: var(--space-0);
+  --button-padding-inline: var(--space-0);
   min-block-size: var(--size-20);
   font-size: var(--font-size-12);
   line-height: var(--line-height-20);

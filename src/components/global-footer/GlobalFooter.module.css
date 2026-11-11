@@ -8,7 +8,7 @@
 }
 
 .footer p {
-  max-inline-size: 80rem;
+  max-inline-size: var(--container-page);
   margin: 0 auto;
   text-wrap: balance;
 }

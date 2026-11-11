@@ -3,7 +3,7 @@ import styles from './ConnectionNotice.module.css';
 
 interface ConnectionNoticeProps {
   isOffline: boolean;
-  onRetry: () => Promise<void>;
+  onRetry: () => Promise<unknown>;
 }
 
 /** Live region kept mounted so screen readers announce when polling loses or regains the server. */
