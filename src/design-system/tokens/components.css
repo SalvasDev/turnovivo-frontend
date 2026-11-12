@@ -1,6 +1,6 @@
-/* Also on dark containers, so var() references resolve against the dark semantic tokens. */
+/* Also on themed containers, so var() references resolve against that container's theme. */
 :root,
-[data-theme="dark"] {
+[data-theme] {
   --button-text-surface-hover: var(--blue-20);
   --button-text-surface-pressed: var(--blue-30);
   --button-text-label: var(--text-brand-primary);
