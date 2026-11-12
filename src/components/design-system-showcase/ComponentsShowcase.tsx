@@ -217,7 +217,6 @@ export default function ComponentsShowcase() {
             />
           </I18nProvider>
         </div>
-        <Divider />
       </Demo>
 
       <Demo title="Card">

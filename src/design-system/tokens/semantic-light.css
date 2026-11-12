@@ -4,7 +4,6 @@
   --text-secondary: var(--neutral-80);
   --text-tertiary: var(--neutral-70);
   --text-inverse: var(--neutral-0);
-  /* Theme-independent: solid and accent fills keep the same hue in both themes. */
   --text-on-solid: var(--neutral-0);
   --text-on-accent: var(--neutral-100);
   --text-brand-primary: var(--color-brand-primary);

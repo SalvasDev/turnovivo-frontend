@@ -4,12 +4,12 @@
 @layer ds.atoms {
   .button {
     /* Brand palette: [data-color] swaps it, variants only consume it. */
-    --button-solid: var(--button-filled-bg);
-    --button-solid-hover: var(--button-filled-bg-hover);
-    --button-solid-pressed: var(--button-filled-bg-pressed);
-    --button-on-solid: var(--button-filled-text);
-    --button-tone: var(--button-outline-text);
-    --button-border: var(--button-outline-border);
+    --button-solid: var(--button-filled-surface-default);
+    --button-solid-hover: var(--button-filled-surface-hover);
+    --button-solid-pressed: var(--button-filled-surface-pressed);
+    --button-on-solid: var(--button-filled-label);
+    --button-tone: var(--button-outline-label);
+    --button-border: var(--button-outline-border-default);
     --button-tint-hover: var(--button-outline-surface-hover);
     --button-tint-pressed: var(--button-outline-surface-pressed);
     --button-border-width: var(--size-1);
@@ -141,16 +141,6 @@
     --button-tint-pressed: var(--button-neutral-outline-surface-pressed);
   }
 
-  /* Light fill + dark label: a deep blue fill vanishes against the dark surface (1:1). */
-  :global([data-theme='dark']) .button[data-color='brand'] {
-    --button-solid: var(--blue-40);
-    --button-solid-hover: var(--blue-30);
-    --button-solid-pressed: var(--blue-20);
-    --button-on-solid: var(--neutral-100);
-    --button-tint-hover: var(--surface-hover);
-    --button-tint-pressed: var(--surface-pressed);
-  }
-
   .button[data-variant='filled'] {
     background: var(--button-solid);
     color: var(--button-on-solid);
@@ -190,8 +180,8 @@
   }
 
   .button[data-variant='filled'][data-disabled] {
-    background: var(--button-disabled-bg);
-    color: var(--button-disabled-text);
+    background: var(--button-filled-surface-disabled);
+    color: var(--button-filled-label-disabled);
   }
 
   .button[data-variant='outlined'][data-disabled] {

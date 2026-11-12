@@ -4,7 +4,6 @@
   --color-alert-error-light: var(--red-20);
   --color-alert-success-dark: var(--green-80);
   --color-alert-success-light: var(--green-20);
-  /* gold-80 (Figma) reaches only 3.9:1 on gold-20; gold-90 meets WCAG AA. */
   --color-alert-warning-dark: var(--gold-90);
   --color-alert-warning-light: var(--gold-20);
   --color-alert-info-dark: var(--blue-80);

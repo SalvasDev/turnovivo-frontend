@@ -1,20 +1,24 @@
-:root {
+/* Also on dark containers, so var() references resolve against the dark semantic tokens. */
+:root,
+[data-theme="dark"] {
   --button-text-surface-hover: var(--blue-20);
   --button-text-surface-pressed: var(--blue-30);
   --button-text-label: var(--text-brand-primary);
-  --button-text-label-disabled: var(--text-tertiary);
+
   --button-outline-border-default: var(--blue-70);
   --button-outline-surface-hover: var(--blue-20);
   --button-outline-surface-pressed: var(--blue-30);
   --button-outline-label: var(--text-brand-primary);
   --button-outline-border-disabled: var(--border-secondary);
   --button-outline-label-disabled: var(--text-tertiary);
+
   --button-filled-surface-default: var(--blue-70);
   --button-filled-surface-hover: var(--blue-80);
   --button-filled-surface-pressed: var(--blue-90);
   --button-filled-label: var(--text-inverse);
   --button-filled-surface-disabled: var(--surface-disabled);
   --button-filled-label-disabled: var(--text-tertiary);
+
   --button-error-text-surface-pressed: var(--red-30);
   --button-error-outline-surface-pressed: var(--red-30);
   --button-error-outline-border-default: var(--red-70);
@@ -23,16 +27,18 @@
   --button-error-outline-surface-hover: var(--red-20);
   --button-error-filled-surface-hover: var(--red-80);
   --button-error-filled-surface-default: var(--red-70);
+
   --button-warning-text-surface-pressed: var(--gold-30);
   --button-warning-outline-surface-pressed: var(--gold-30);
-  --button-warning-outline-border-default: var(--gold-80);  /* Form-field outline: WCAG 1.4.11 needs 3:1 against the page in both themes. */
-  --field-border-default: var(--neutral-60);  --button-warning-filled-surface-pressed: var(--gold-90);
+  --button-warning-outline-border-default: var(--gold-80);
+
+  --button-warning-filled-surface-pressed: var(--gold-90);
   --button-warning-text-surface-hover: var(--gold-20);
   --button-warning-outline-surface-hover: var(--gold-20);
   --button-warning-filled-surface-hover: var(--gold-80);
   --button-warning-filled-surface-default: var(--gold-70);
+
   --button-neutral-filled-label: var(--neutral-0);
-  --button-neutral-text-label: var(--neutral-70);
   --button-neutral-outline-border-default: var(--neutral-70);
   --button-neutral-text-surface-pressed: var(--neutral-30);
   --button-neutral-outline-surface-pressed: var(--neutral-30);
@@ -41,11 +47,15 @@
   --button-neutral-outline-surface-hover: var(--neutral-20);
   --button-neutral-filled-surface-hover: var(--neutral-80);
   --button-neutral-filled-surface-default: var(--neutral-70);
+
   --button-error-label: var(--red-70);
   --button-error-filled-label: var(--neutral-0);
+
   --button-warning-label: var(--gold-90);
   --button-warning-filled-label: var(--neutral-100);
+
   --button-neutral-label: var(--neutral-70);
+
   --button-success-filled-surface-default: var(--green-80);
   --button-success-filled-surface-hover: var(--green-90);
   --button-success-filled-surface-pressed: var(--green-100);
@@ -56,11 +66,20 @@
   --button-success-text-surface-hover: var(--green-20);
   --button-success-text-surface-pressed: var(--green-30);
   --button-success-label: var(--green-80);
+
+  --field-border-default: var(--neutral-60);
 }
 
 /* Pale light-theme hover surfaces would erase the lighter dark-theme labels. */
 [data-theme="dark"] {
+  /* Light fill + dark label: a deep blue fill vanishes against the dark surface. */
+  --button-filled-surface-default: var(--blue-40);
+  --button-filled-surface-hover: var(--blue-30);
+  --button-filled-surface-pressed: var(--blue-20);
+  --button-filled-label-disabled: var(--neutral-60);
   --button-outline-border-default: var(--blue-40);
+  --button-outline-surface-hover: var(--surface-hover);
+  --button-outline-surface-pressed: var(--surface-pressed);
   --button-error-label: var(--red-50);
   --button-warning-label: var(--gold-50);
   --button-success-label: var(--green-50);
