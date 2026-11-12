@@ -45,4 +45,6 @@
   --space-160: 160px;
   /* Relative to the current font size, e.g. text placeholders. */
   --size-1em: 1em;
+  --border-width-default: var(--size-1);
+  --border-width-strong: var(--size-2);
 }

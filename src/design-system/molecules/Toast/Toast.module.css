@@ -5,8 +5,7 @@
   display: flex;
   align-items: center;
   gap: var(--space-8);
-  box-sizing: border-box;
-  inline-size: calc(var(--size-64) * 6 - var(--size-8) - var(--size-2) / 2);
+  inline-size: var(--toast-width);
   max-inline-size: 100%;
   min-inline-size: 0;
   min-block-size: var(--size-40);
@@ -14,7 +13,7 @@
   border-radius: var(--radius-8);
   background: var(--toast-background);
   color: var(--toast-foreground);
-  font-family: var(--font-family-inter), sans-serif;
+  font-family: var(--font-family-primary), sans-serif;
   font-size: var(--font-size-16);
   font-weight: var(--font-weight-semibold);
   line-height: var(--line-height-20);
@@ -64,8 +63,8 @@
 }
 
 .toast[data-variant='success'] .icon > svg {
-  inline-size: calc(var(--size-24) * 0.6);
-  block-size: calc(var(--size-24) * 0.6);
+  inline-size: var(--size-16);
+  block-size: var(--size-16);
 }
 
 .toast .dismiss {
@@ -82,8 +81,8 @@
 }
 
 .closeIcon > svg {
-  inline-size: calc(var(--size-12) + var(--size-2));
-  block-size: calc(var(--size-12) + var(--size-2));
+  inline-size: var(--size-16);
+  block-size: var(--size-16);
 }
 
 .toast .dismiss[data-focus-visible] {

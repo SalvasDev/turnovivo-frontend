@@ -5,17 +5,17 @@
 
 /* Lets the last slots scroll above the floating connection notice instead of hiding under it. */
 .agenda[data-offline] {
-  padding-block-end: calc(var(--size-64) * 2);
+  padding-block-end: var(--space-120);
 }
 
 .toolbar {
-  inline-size: calc(var(--size-64) * 6 + var(--size-24) + var(--size-2) / 2);
+  inline-size: var(--agenda-picker-width);
   max-inline-size: 100%;
 }
 
 .toolbarRow {
   display: grid;
-  grid-template-columns: minmax(0, calc(var(--size-64) * 6 + var(--size-24) + var(--size-2) / 2)) minmax(0, 1fr);
+  grid-template-columns: minmax(0, var(--agenda-picker-width)) minmax(0, 1fr);
   align-items: start;
   gap: var(--space-24);
   margin-block-end: var(--space-24);
@@ -104,7 +104,7 @@
 }
 
 .summaryAction {
-  --button-border-width: calc(var(--size-2) / 2);
+  --button-border-width: var(--border-width-default);
 }
 
 .dateGroup {

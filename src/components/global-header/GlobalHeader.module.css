@@ -17,7 +17,7 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--space-24);
-  min-block-size: calc(var(--size-64) + var(--size-20));
+  min-block-size: var(--header-height);
   max-inline-size: var(--container-page);
   margin-inline: auto;
   padding-inline: var(--space-32);
@@ -25,7 +25,7 @@
 
 .brand {
   color: var(--text-brand-primary);
-  font-family: var(--font-maven-pro), var(--font-family-inter), sans-serif;
+  font-family: var(--font-maven-pro), var(--font-family-primary), sans-serif;
   font-size: var(--font-size-32);
   font-weight: var(--font-weight-extrabold);
   line-height: var(--line-height-40);
@@ -124,7 +124,6 @@
 }
 
 .popover {
-  box-sizing: border-box;
   inline-size: calc(var(--size-64) * 3 + var(--size-16));
   max-inline-size: calc(100vw - var(--space-32));
   padding: var(--space-8);
@@ -136,12 +135,11 @@
 
 .menu {
   outline: none;
-  font-family: var(--font-family-inter), sans-serif;
+  font-family: var(--font-family-primary), sans-serif;
 }
 
 .menuItem {
   display: block;
-  box-sizing: border-box;
   inline-size: 100%;
   padding: var(--space-12);
   border: 0;

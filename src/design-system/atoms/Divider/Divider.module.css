@@ -2,7 +2,6 @@
 
 @layer ds.atoms {
   .divider {
-    box-sizing: border-box;
     inline-size: 100%;
     block-size: 0;
     margin: var(--space-40) 0;

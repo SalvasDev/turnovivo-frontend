@@ -7,10 +7,10 @@ import { useAuth } from '@/context/AuthContext';
 import { ApiError, apiService } from '@/services/api';
 import { getErrorMessage } from '@/services/http-client';
 import { Button, Input, Spinner } from '@/design-system';
-import styles from '@/design-system/layouts/AuthLayout.module.css';
 import { getEmailError } from '@/domain/validation';
 import { getHomePathForRole, getSafeReturnPath } from '@/domain/access';
 import { parseTokenClaims } from '@/services/api-parsers';
+import styles from '@/design-system/layouts/AuthLayout.module.css';
 
 function LoginForm() {
   const searchParams = useSearchParams();

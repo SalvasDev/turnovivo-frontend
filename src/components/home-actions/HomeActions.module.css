@@ -9,5 +9,6 @@
   .actions {
     align-items: stretch;
     flex-direction: column;
+    gap: var(--space-16);
   }
 }

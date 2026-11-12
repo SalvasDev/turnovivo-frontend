@@ -1,16 +1,14 @@
 .page {
-  box-sizing: border-box;
   inline-size: 100%;
   padding: var(--space-48) var(--space-16) var(--space-80);
   background: var(--surface-primary);
   color: var(--text-primary);
-  font-family: var(--font-family-inter), sans-serif;
+  font-family: var(--font-family-primary), sans-serif;
 }
 
 .content {
   display: flex;
   flex-direction: column;
-  gap: var(--space-80);
   max-inline-size: calc(var(--size-64) * 18);
   min-inline-size: 0;
   margin-inline: auto;
@@ -76,8 +74,8 @@
 
 .srOnly {
   position: absolute;
-  inline-size: calc(var(--size-2) / 2);
-  block-size: calc(var(--size-2) / 2);
+  inline-size: var(--size-1);
+  block-size: var(--size-1);
   overflow: hidden;
   clip-path: inset(50%);
   white-space: nowrap;
@@ -117,7 +115,7 @@
   flex-shrink: 0;
   inline-size: var(--size-32);
   block-size: var(--size-32);
-  border: calc(var(--size-2) / 2) solid var(--border-tertiary);
+  border: var(--border-width-default) solid var(--border-tertiary);
   border-radius: var(--radius-4);
 }
 
@@ -134,7 +132,7 @@
   justify-content: space-between;
   gap: var(--space-8);
   padding-block: var(--space-12);
-  border-block-end: calc(var(--size-2) / 2) solid var(--border-tertiary);
+  border-block-end: var(--border-width-default) solid var(--border-tertiary);
 }
 
 .spaceBar {
@@ -164,7 +162,7 @@
 }
 
 .radiusBox {
-  border: calc(var(--size-2) / 2) solid var(--border-secondary);
+  border: var(--border-width-default) solid var(--border-secondary);
 }
 
 .shadowBox {
@@ -206,7 +204,7 @@
 
 .vDivider {
   align-self: stretch;
-  inline-size: calc(var(--size-2) / 2);
+  inline-size: var(--border-width-default);
   block-size: auto;
   margin: 0;
 }
@@ -242,7 +240,6 @@
 }
 
 .actionPopover {
-  box-sizing: border-box;
   max-inline-size: calc(100vw - var(--space-32));
   padding: var(--space-4);
   border: thin solid var(--border-secondary);
@@ -286,7 +283,7 @@
   flex-direction: column;
   gap: var(--space-16);
   padding: var(--space-24);
-  border: calc(var(--size-2) / 2) solid var(--border-secondary);
+  border: var(--border-width-default) solid var(--border-secondary);
   border-radius: var(--radius-12);
   background: var(--surface-primary);
   color: var(--text-primary);

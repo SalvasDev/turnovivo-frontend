@@ -31,7 +31,7 @@
   min-inline-size: 0;
   margin: 0;
   padding: var(--space-8) var(--space-12);
-  border: calc(var(--size-2) / 2) solid var(--border-warning);
+  border: var(--border-width-default) solid var(--border-warning);
   border-radius: var(--radius-8);
   background: var(--surface-primary);
   color: var(--text-primary);

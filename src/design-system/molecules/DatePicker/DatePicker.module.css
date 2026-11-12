@@ -8,7 +8,7 @@
   inline-size: 100%;
   min-inline-size: 0;
   color: var(--text-primary);
-  font-family: var(--font-family-inter), sans-serif;
+  font-family: var(--font-family-primary), sans-serif;
   font-size: var(--font-size-16);
   line-height: var(--line-height-20);
   letter-spacing: 0;
@@ -49,7 +49,6 @@
   grid-row: 2;
   display: flex;
   align-items: center;
-  box-sizing: border-box;
   block-size: var(--size-40);
   min-inline-size: 0;
   padding-inline: var(--space-12) var(--space-4);
@@ -116,7 +115,7 @@
   --button-tint-pressed: var(--surface-pressed);
   grid-column: 2;
   grid-row: 2;
-  --button-border-width: calc(var(--size-2) / 2);
+  --button-border-width: var(--border-width-default);
   --button-padding-block: var(--space-8);
   --button-padding-inline: var(--space-12);
   align-self: start;
@@ -176,7 +175,6 @@
 }
 
 .popover {
-  box-sizing: border-box;
   max-inline-size: calc(100vw - var(--space-16));
   padding: var(--space-12);
   border: thin solid var(--border-secondary);
@@ -184,7 +182,7 @@
   background: var(--surface-primary);
   color: var(--text-primary);
   box-shadow: var(--effects-shadow-3);
-  font-family: var(--font-family-inter), sans-serif;
+  font-family: var(--font-family-primary), sans-serif;
   font-size: var(--font-size-14);
   line-height: var(--line-height-20);
 }
@@ -236,7 +234,6 @@
   position: relative;
   display: grid;
   place-items: center;
-  box-sizing: border-box;
   inline-size: min(var(--size-touch-target), 100%);
   aspect-ratio: 1;
   margin-inline: auto;
@@ -302,14 +299,14 @@
 }
 
 .legendMarker[data-availability='waitlist'] {
-  border: calc(var(--size-2) * 0.75) dashed var(--icon-warning);
+  border: var(--border-width-strong) dashed var(--icon-warning);
   border-radius: var(--radius-radius-full);
 }
 
 /* Drawn inside the touch target so the ring matches the 32px day. */
 .day[data-availability='waitlist'] {
   border-radius: var(--radius-radius-full);
-  outline: calc(var(--size-2) * 0.75) dashed var(--icon-warning);
+  outline: var(--border-width-strong) dashed var(--icon-warning);
   outline-offset: calc(-1 * var(--day-inset));
 }
 
@@ -317,7 +314,7 @@
 .legendMarker[data-availability='blocked'] {
   color: var(--text-error);
   text-decoration: line-through;
-  text-decoration-thickness: calc(var(--size-2) / 2);
+  text-decoration-thickness: var(--size-1);
 }
 
 .day[data-availability='none'],
@@ -343,7 +340,7 @@
   gap: var(--space-8) var(--space-12);
   margin: var(--space-12) 0 0;
   padding: var(--space-12) 0 0;
-  border-block-start: calc(var(--size-2) / 2) solid var(--border-tertiary);
+  border-block-start: var(--border-width-default) solid var(--border-tertiary);
   color: var(--text-secondary);
   font-size: var(--font-size-12);
   line-height: var(--line-height-16);
@@ -358,7 +355,6 @@
 
 .legendMarker {
   display: grid;
-  box-sizing: border-box;
   flex: none;
   place-items: center;
   inline-size: var(--size-24);

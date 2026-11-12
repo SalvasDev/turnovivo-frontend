@@ -1,5 +1,4 @@
 .state {
-  box-sizing: border-box;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -9,7 +8,7 @@
   min-block-size: calc(var(--size-64) * 6);
   padding: var(--space-48) var(--space-16);
   color: var(--text-primary);
-  font-family: var(--font-family-inter), sans-serif;
+  font-family: var(--font-family-primary), sans-serif;
   text-align: center;
 }
 

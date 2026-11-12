@@ -13,6 +13,13 @@
   --container-prose: 50rem;
   --container-lead: 43.2rem;
   --container-auth-card: 25rem;
+  --container-agenda: 864px;
+
+  --header-height: 84px;
+  --agenda-picker-width: 408px;
+  --dialog-width-sm: 368px;
+  --dialog-width-md: 392px;
+  --toast-width: 376px;
 
   --z-index-behind: -1;
   --z-index-header: 40;

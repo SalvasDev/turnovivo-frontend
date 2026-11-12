@@ -43,8 +43,8 @@
   /* Visually hidden text keeps the status announced without affecting layout. */
   .label {
     position: absolute;
-    inline-size: calc(var(--size-2) / 2);
-    block-size: calc(var(--size-2) / 2);
+    inline-size: var(--size-1);
+    block-size: var(--size-1);
     overflow: hidden;
     clip-path: inset(50%);
     white-space: nowrap;

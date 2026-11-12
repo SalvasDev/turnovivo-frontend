@@ -1,14 +1,13 @@
 .page {
-  box-sizing: border-box;
   inline-size: 100%;
   padding: var(--space-72) var(--space-16) var(--space-80);
   background: var(--surface-primary);
   color: var(--text-primary);
-  font-family: var(--font-family-inter), sans-serif;
+  font-family: var(--font-family-primary), sans-serif;
 }
 
 .content {
-  max-inline-size: calc(var(--size-64) * 13 + var(--size-32));
+  max-inline-size: var(--container-agenda);
   min-inline-size: 0;
   margin-inline: auto;
 }

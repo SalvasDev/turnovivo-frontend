@@ -8,7 +8,7 @@
   inline-size: 100%;
   min-inline-size: 0;
   color: var(--text-primary);
-  font-family: var(--font-family-inter), sans-serif;
+  font-family: var(--font-family-primary), sans-serif;
   font-size: var(--font-size-16);
   line-height: var(--line-height-20);
 }
@@ -84,7 +84,6 @@
   display: flex;
   align-items: center;
   gap: var(--space-8);
-  box-sizing: border-box;
   block-size: var(--size-40);
   min-inline-size: 0;
   padding-inline: var(--space-12);
@@ -95,7 +94,6 @@
 
 .input {
   flex: 1;
-  box-sizing: border-box;
   inline-size: 100%;
   min-inline-size: 0;
   block-size: 100%;

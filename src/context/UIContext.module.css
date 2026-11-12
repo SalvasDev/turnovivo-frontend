@@ -1,12 +1,12 @@
 .toasts {
   position: fixed;
-  inset-block-start: calc(var(--size-64) + var(--size-20) + var(--space-32) - var(--space-2));
+  inset-block-start: calc(var(--header-height) + var(--space-32));
   inset-inline-end: var(--space-16);
   z-index: var(--z-index-toast);
   display: flex;
   flex-direction: column;
   gap: var(--space-8);
-  inline-size: calc(var(--size-64) * 6 - var(--size-8) - var(--size-2) / 2);
+  inline-size: var(--toast-width);
   max-inline-size: calc(100vw - var(--space-32));
   pointer-events: none;
 }

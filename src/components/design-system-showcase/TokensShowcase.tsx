@@ -75,7 +75,7 @@ export default function TokensShowcase() {
       <ul className={styles.typeList}>
         {typeScale.map(([name, token]) => (
           <li key={token} className={styles.typeRow}>
-            <span style={{ font: `var(--${token})`, fontFamily: 'var(--font-family-inter), sans-serif' }}>{name}</span>
+            <span style={{ font: `var(--${token})`, fontFamily: 'var(--font-family-primary), sans-serif' }}>{name}</span>
             <code>--{token}</code>
           </li>
         ))}
