@@ -18,7 +18,7 @@ describe('Design system showcase', () => {
     const user = userEvent.setup();
     render(<UIProvider><ComponentsShowcase /></UIProvider>);
 
-    expect(within(screen.getByRole('group', { name: 'Button variants by color' })).getAllByRole('button')).toHaveLength(15);
+    expect(within(screen.getByRole('group', { name: 'Button variants by color' })).getAllByRole('button')).toHaveLength(18);
     expect(screen.getByRole('button', { name: /^Pending/ })).toHaveAttribute('aria-disabled', 'true');
     expect(screen.getByRole('table', { name: 'Empty state example' })).toHaveTextContent('No appointments available.');
     expect(within(screen.getByRole('table', { name: 'Example appointment slots' })).getAllByRole('columnheader').map((header) => header.textContent)).toEqual(['Slot', 'Status', 'Client ID', 'Actions']);

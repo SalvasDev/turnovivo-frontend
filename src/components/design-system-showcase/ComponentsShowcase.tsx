@@ -31,6 +31,7 @@ import {
   type ToastVariant,
 } from '@/design-system';
 import { useUI } from '@/context/UIContext';
+import slotStyles from '../appointment-grid/slot-card/SlotCard.module.css';
 import styles from './Showcase.module.css';
 
 const variants: ButtonVariant[] = ['filled', 'outlined', 'text'];
@@ -140,6 +141,13 @@ export default function ComponentsShowcase() {
               ))}
             </div>
           ))}
+          {/* Disabled overrides the palette, so one sample per variant covers every color. */}
+          <div className={styles.row}>
+            <code className={styles.rowLabel}>disabled</code>
+            {variants.map((variant) => (
+              <Button key={variant} variant={variant} isDisabled>{variant}</Button>
+            ))}
+          </div>
         </div>
       </Demo>
 
@@ -224,6 +232,7 @@ export default function ComponentsShowcase() {
           <Card title="9:00 AM" badges={[{ children: 'Available', color: 'success' }]} action={{ children: 'Reserve', variant: 'filled', onPress: () => wait(1500) }} />
           <Card title="9:30 AM" badges={[{ children: 'Your turn', color: 'success', appearance: 'solid' }]} action={{ children: 'Cancel appointment', variant: 'outlined' }} />
           <Card title="10:00 AM" badges={[{ children: 'On hold', color: 'warning' }, { children: 'Waiting', color: 'warning', appearance: 'solid' }]} action={{ children: 'On hold for you', isDisabled: true }} />
+          <Card title="10:30 AM" data-slot-status="blocked" className={slotStyles.slotCard} badges={[{ children: 'Cancelled', color: 'error' }]} action={{ children: 'Cancelled', isDisabled: true }} />
         </div>
       </Demo>
 
@@ -299,6 +308,7 @@ export default function ComponentsShowcase() {
               <div className={styles.row}>
                 <Button>Primary</Button>
                 <Button variant="outlined">Secondary</Button>
+                <Button isDisabled>Disabled</Button>
                 <Badge color="success">Available</Badge>
               </div>
               <Input label="Search" placeholder="Search appointments" />

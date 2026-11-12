@@ -220,6 +220,11 @@
   gap: var(--space-16);
 }
 
+/* Cards fill their cell, as in the booking grid. */
+.cards > * {
+  inline-size: 100%;
+}
+
 .toasts {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(min(100%, calc(var(--size-64) * 5)), 1fr));
