@@ -129,7 +129,6 @@ export default function AdminDashboardClient({ initialSlots, businessId }: Admin
         getRowId={slot => slot.id}
         emptyMessage="No appointments available."
         aria-busy={loadingSlotId !== null}
-        className={styles.table}
       />
     </>
   );

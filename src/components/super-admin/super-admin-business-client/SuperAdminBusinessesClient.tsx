@@ -153,7 +153,7 @@ export default function SuperAdminBusinessesClient({
           <Button variant="outlined" color="neutral" className={`${styles.action} ${styles.secondaryAction}`} startIcon={<Icon name="add" />} isDisabled={submitting} onPress={() => setModal('admin')}>Add admin</Button>
           <Button className={styles.action} startIcon={<Icon name="add" />} isDisabled={submitting} onPress={() => { setEditingBusiness(undefined); setModal('company'); }}>Add company</Button>
         </div>
-        <Table caption="Platform companies" columns={columns} items={businesses} getRowId={business => business.id} emptyMessage="No companies registered yet." className={styles.table} aria-busy={submitting} />
+        <Table caption="Platform companies" columns={columns} items={businesses} getRowId={business => business.id} emptyMessage="No companies registered yet." aria-busy={submitting} />
       </div>
       {modal === 'admin' && <CreateAdminModal isOpen onClose={() => setModal(null)} onSubmit={handleCreateAdmin} />}
       {modal === 'company' && <CreateBusinessModal isOpen admins={admins} business={editingBusiness} onClose={() => { setModal(null); setEditingBusiness(undefined); }} onSubmit={handleSaveBusiness} />}

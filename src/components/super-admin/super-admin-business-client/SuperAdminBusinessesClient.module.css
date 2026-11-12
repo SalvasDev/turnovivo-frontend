@@ -55,10 +55,6 @@
   --button-border-width: var(--border-width-default);
 }
 
-.table {
-  min-inline-size: var(--container-agenda);
-}
-
 .company {
   display: flex;
   flex-direction: column;

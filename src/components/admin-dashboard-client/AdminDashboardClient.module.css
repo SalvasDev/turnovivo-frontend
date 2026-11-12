@@ -1,9 +1,4 @@
-.table {
-  min-inline-size: var(--container-agenda);
-}
-
 .time {
-  white-space: nowrap;
   font-variant-numeric: tabular-nums;
 }
 
