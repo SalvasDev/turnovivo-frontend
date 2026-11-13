@@ -28,9 +28,11 @@ const subscribe = (listener: () => void) => {
   listeners.add(listener);
   return () => listeners.delete(listener);
 };
+
 const notify = () => listeners.forEach((listener) => listener());
-const getTokenSnapshot = () => getSessionToken() ?? null;
+
 // Undefined on the server marks the session as unknown until the client hydrates.
+const getTokenSnapshot = () => getSessionToken() ?? null;
 const getServerTokenSnapshot = () => undefined;
 
 export function AuthProvider({ children }: { children: ReactNode }) {

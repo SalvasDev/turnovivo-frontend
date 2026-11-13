@@ -28,9 +28,7 @@
 .required,
 .helper,
 .error {
-  font-size: var(--font-size-14);
-  font-weight: var(--font-weight-regular);
-  line-height: var(--line-height-20);
+  font: var(--typography-body-body-medium);
   overflow-wrap: anywhere;
 }
 
@@ -121,9 +119,7 @@
   align-self: start;
   min-block-size: var(--size-40);
   border-radius: var(--radius-8);
-  font-size: var(--font-size-16);
-  font-weight: var(--font-weight-medium);
-  line-height: var(--line-height-20);
+  font: var(--typography-body-body-base-500);
 }
 
 /* Matches the 40px field visually while keeping a 48px (large) touch target. */

@@ -26,7 +26,7 @@
 .brand {
   color: var(--text-brand-primary);
   font-family: var(--font-maven-pro), var(--font-family-primary), sans-serif;
-  font-size: var(--font-size-32);
+  font-size: var(--font-size-28);
   font-weight: var(--font-weight-extrabold);
   line-height: var(--line-height-40);
   text-decoration: none;

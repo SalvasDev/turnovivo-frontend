@@ -39,9 +39,7 @@
 .description,
 .helper,
 .error {
-  font-size: var(--font-size-14);
-  font-weight: var(--font-weight-regular);
-  line-height: var(--line-height-20);
+  font: var(--typography-body-body-medium);
   overflow-wrap: anywhere;
 }
 

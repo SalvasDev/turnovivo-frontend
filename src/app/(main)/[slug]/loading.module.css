@@ -28,9 +28,7 @@
 .dateLabel {
   grid-column: 1;
   color: var(--text-primary);
-  font-size: var(--font-size-16);
-  font-weight: var(--font-weight-semibold);
-  line-height: var(--line-height-20);
+  font: var(--typography-body-body-base-semibold);
 }
 
 .dateInputSkeleton {

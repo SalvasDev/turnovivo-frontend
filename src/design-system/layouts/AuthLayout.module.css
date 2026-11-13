@@ -1,145 +1,145 @@
 @layer reset, ds.atoms, ds.molecules, ds.layouts;
 
 @layer ds.layouts {
-.page {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  place-items: center;
-  min-block-size: calc(100dvh - var(--space-96));
-  padding: var(--space-32) var(--space-16);
-  color: var(--text-primary);
-}
-
-.card {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-24);
-  inline-size: var(--container-auth-card);
-  max-inline-size: 100%;
-  min-inline-size: 0;
-  padding: var(--space-32);
-  border: thin solid var(--border-secondary);
-  border-radius: var(--radius-12);
-  background: var(--surface-primary);
-}
-
-.brand {
-  align-self: center;
-  color: var(--text-brand-primary);
-  font-family: var(--font-maven-pro), var(--font-family-primary), sans-serif;
-  font-size: var(--font-size-32);
-  font-weight: var(--font-weight-extrabold);
-  line-height: var(--line-height-36);
-  text-decoration: none;
-}
-
-.header {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-8);
-  text-align: center;
-}
-
-.title {
-  margin: 0;
-  font-size: var(--font-size-24);
-  font-weight: var(--font-weight-semibold);
-  line-height: var(--line-height-32);
-}
-
-.description,
-.demoPassword {
-  margin: 0;
-  color: var(--text-tertiary);
-  font-size: var(--font-size-14);
-  line-height: var(--line-height-20);
-  text-align: center;
-}
-
-.form {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-24);
-}
-
-.form .submit {
-  --button-padding-block: var(--space-8);
-  --button-padding-inline: var(--space-16);
-  inline-size: 100%;
-  min-block-size: var(--size-40);
-}
-
-.signUp {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: var(--space-4);
-  color: var(--text-tertiary);
-  font-size: var(--font-size-14);
-  line-height: var(--line-height-20);
-}
-
-.signUpLink {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-block-size: var(--size-32);
-  padding: var(--space-8) var(--space-16);
-  border-radius: var(--radius-radius-full);
-  color: var(--button-text-label);
-  font-weight: var(--font-weight-semibold);
-  line-height: var(--line-height-16);
-  text-decoration: none;
-}
-
-.signUpLink:hover {
-  background: var(--button-text-surface-hover);
-}
-
-.signUpLink:active {
-  background: var(--button-text-surface-pressed);
-}
-
-.brand:focus-visible,
-.signUpLink:focus-visible {
-  outline: var(--size-2) solid var(--border-focus);
-  outline-offset: var(--space-2);
-}
-
-/* Alert aliases are theme-independent, matching the Toast palette in both themes. */
-.error,
-.success,
-.sessionExpired {
-  padding: var(--space-12);
-  border: thin solid var(--color-alert-error-dark);
-  border-radius: var(--radius-8);
-  background: var(--color-alert-error-light);
-  color: var(--color-alert-error-dark);
-  font-size: var(--font-size-14);
-  line-height: var(--line-height-20);
-  overflow-wrap: anywhere;
-}
-
-.success {
-  border-color: var(--color-alert-success-dark);
-  background: var(--color-alert-success-light);
-  color: var(--color-alert-success-dark);
-}
-
-.sessionExpired {
-  border-color: var(--border-warning);
-  background: var(--surface-warning-light);
-  color: var(--text-warning);
-}
-
-:global([data-theme='dark']) .brand {
-  color: var(--neutral-0);
-}
-
-@media (max-width: 30rem) {
-  .card {
-    padding: var(--space-24);
+  .page {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    place-items: center;
+    min-block-size: calc(100dvh - var(--space-96));
+    padding: var(--space-32) var(--space-16);
+    color: var(--text-primary);
   }
-}
+
+  .card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-24);
+    inline-size: var(--container-auth-card);
+    max-inline-size: 100%;
+    min-inline-size: 0;
+    padding: var(--space-32);
+    border: thin solid var(--border-secondary);
+    border-radius: var(--radius-12);
+    background: var(--surface-primary);
+  }
+
+  .brand {
+    align-self: center;
+    color: var(--text-brand-primary);
+    font-family: var(--font-maven-pro), var(--font-family-primary), sans-serif;
+    font-size: var(--font-size-32);
+    font-weight: var(--font-weight-extrabold);
+    line-height: var(--line-height-36);
+    text-decoration: none;
+  }
+
+  .header {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+    text-align: center;
+  }
+
+  .title {
+    margin: 0;
+    font-size: var(--font-size-24);
+    font-weight: var(--font-weight-semibold);
+    line-height: var(--line-height-32);
+  }
+
+  .description,
+  .demoPassword {
+    margin: 0;
+    color: var(--text-tertiary);
+    font-size: var(--font-size-14);
+    line-height: var(--line-height-20);
+    text-align: center;
+  }
+
+  .form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-24);
+  }
+
+  .form .submit {
+    --button-padding-block: var(--space-8);
+    --button-padding-inline: var(--space-16);
+    inline-size: 100%;
+    min-block-size: var(--size-40);
+  }
+
+  .signUp {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+    color: var(--text-tertiary);
+    font-size: var(--font-size-14);
+    line-height: var(--line-height-20);
+  }
+
+  .signUpLink {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-block-size: var(--size-32);
+    padding: var(--space-8) var(--space-8);
+    border-radius: var(--radius-radius-full);
+    color: var(--button-text-label);
+    font-weight: var(--font-weight-semibold);
+    line-height: var(--line-height-16);
+    text-decoration: none;
+  }
+
+  .signUpLink:hover {
+    background: var(--button-text-surface-hover);
+  }
+
+  .signUpLink:active {
+    background: var(--button-text-surface-pressed);
+  }
+
+  .brand:focus-visible,
+  .signUpLink:focus-visible {
+    outline: var(--size-2) solid var(--border-focus);
+    outline-offset: var(--space-2);
+  }
+
+  /* Alert aliases are theme-independent, matching the Toast palette in both themes. */
+  .error,
+  .success,
+  .sessionExpired {
+    padding: var(--space-12);
+    border: thin solid var(--color-alert-error-dark);
+    border-radius: var(--radius-8);
+    background: var(--color-alert-error-light);
+    color: var(--color-alert-error-dark);
+    font-size: var(--font-size-14);
+    line-height: var(--line-height-20);
+    overflow-wrap: anywhere;
+  }
+
+  .success {
+    border-color: var(--color-alert-success-dark);
+    background: var(--color-alert-success-light);
+    color: var(--color-alert-success-dark);
+  }
+
+  .sessionExpired {
+    border-color: var(--border-warning);
+    background: var(--surface-warning-light);
+    color: var(--text-warning);
+  }
+
+  :global([data-theme='dark']) .brand {
+    color: var(--neutral-0);
+  }
+
+  @media (max-width: 30rem) {
+    .card {
+      padding: var(--space-24);
+    }
+  }
 }

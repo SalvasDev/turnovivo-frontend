@@ -29,10 +29,7 @@
     border: var(--button-border-width) solid var(--surface-transparent);
     border-radius: var(--radius-radius-full);
     background: var(--surface-transparent);
-    font-family: var(--font-family-primary), sans-serif;
-    font-size: var(--font-size-18);
-    font-weight: var(--font-weight-semibold);
-    line-height: var(--line-height-24);
+    font: var(--typography-labels-label-large);
     letter-spacing: 0;
     text-align: center;
     text-decoration: none;
@@ -81,8 +78,7 @@
     --button-padding-inline: var(--space-16);
     gap: var(--space-4);
     min-block-size: var(--size-32);
-    font-size: var(--font-size-14);
-    line-height: var(--line-height-16);
+    font: var(--typography-labels-label-small);
   }
 
   /* Compact buttons keep their look but get an invisible touch target of the large size (48px). */

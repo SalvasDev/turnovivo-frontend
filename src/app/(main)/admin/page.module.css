@@ -21,9 +21,7 @@
 
 .title {
   margin: 0;
-  font-size: var(--font-size-32);
-  font-weight: var(--font-weight-semibold);
-  line-height: var(--line-height-36);
+  font: var(--typography-headline-headline-medium-semibold);
   letter-spacing: 0;
   overflow-wrap: anywhere;
 }

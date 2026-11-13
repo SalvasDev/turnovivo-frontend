@@ -44,9 +44,7 @@
 
 .title {
   margin: 0;
-  font-size: var(--font-size-18);
-  font-weight: var(--font-weight-semibold);
-  line-height: var(--line-height-24);
+  font: var(--typography-labels-label-large);
   overflow-wrap: anywhere;
 }
 

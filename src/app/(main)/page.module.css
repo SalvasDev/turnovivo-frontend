@@ -39,9 +39,7 @@
   border: thin solid var(--border-brand);
   border-radius: var(--radius-radius-full);
   color: var(--text-primary);
-  font-size: var(--font-size-12);
-  font-weight: var(--font-weight-regular);
-  line-height: var(--line-height-14);
+  font: var(--typography-body-body-small);
   letter-spacing: 0;
 }
 
@@ -64,9 +62,7 @@
 
 .title {
   margin: 0;
-  font-size: var(--font-size-56);
-  font-weight: var(--font-weight-semibold);
-  line-height: var(--line-height-64);
+  font: var(--typography-display-display-large-semibold);
   letter-spacing: 0;
 }
 
@@ -82,9 +78,7 @@
   max-inline-size: var(--container-lead);
   margin: var(--space-32) 0;
   color: var(--text-secondary);
-  font-size: var(--font-size-20);
-  font-weight: var(--font-weight-regular);
-  line-height: var(--line-height-28);
+  font: var(--typography-body-body-large);
 }
 
 .section {
@@ -120,18 +114,14 @@
 .eyebrow {
   margin: 0;
   color: var(--text-secondary);
-  font-size: var(--font-size-14);
-  font-weight: var(--font-weight-regular);
-  line-height: var(--line-height-20);
+  font: var(--typography-body-body-medium);
   text-transform: uppercase;
 }
 
 .feature h3,
 .demoTitle {
   margin: 0;
-  font-size: var(--font-size-20);
-  font-weight: var(--font-weight-bold);
-  line-height: var(--line-height-24);
+  font: var(--typography-title-title-medium-bold);
 }
 
 .featureDescription {

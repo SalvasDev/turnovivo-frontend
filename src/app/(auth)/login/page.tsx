@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
-import { Suspense, useEffect, useState } from 'react';
+import { Suspense, useEffect, useState, type SubmitEvent } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { ApiError, apiService } from '@/services/api';
 import { getErrorMessage } from '@/services/http-client';
@@ -15,6 +15,7 @@ import styles from '@/design-system/layouts/AuthLayout.module.css';
 function LoginForm() {
   const searchParams = useSearchParams();
   const sessionExpired = searchParams.get('sessionExpired') === '1';
+  
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -38,14 +39,16 @@ function LoginForm() {
     setError(null);
     setEmailError(null);
   };
+
   const handlePasswordChange = (value: string) => {
     setPassword(value);
     setError(null);
     setPasswordError(null);
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: SubmitEvent<HTMLFormElement>) => {
     e.preventDefault();
+
     if (submitting) return;
 
     const nextEmailError = getEmailError(email);

@@ -13,12 +13,9 @@
   border-radius: var(--radius-radius-full);
   background: var(--badge-background);
   color: var(--badge-foreground);
-  font-family: var(--font-family-primary), sans-serif;
-  font-size: var(--font-size-10);
-  font-weight: var(--font-weight-bold);
-  line-height: var(--line-height-12);
+  font: var(--typography-caption-caption-bold);
   letter-spacing: 0;
-  text-transform: uppercase;
+  text-transform: var(--typography-caption-caption-bold-text-transform);
   vertical-align: middle;
 }
 

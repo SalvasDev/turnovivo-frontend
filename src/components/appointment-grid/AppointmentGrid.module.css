@@ -91,9 +91,7 @@
 
 .summaryField dd {
   margin: 0;
-  font-size: var(--font-size-14);
-  font-weight: var(--font-weight-medium);
-  line-height: var(--line-height-20);
+  font: var(--typography-body-body-medium-500);
   overflow-wrap: anywhere;
 }
 
