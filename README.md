@@ -28,6 +28,25 @@ component library I designed in Figma and implemented from scratch.
 Lighthouse (mobile, production build): performance 86–93, accessibility 100 on the booking page, the design
 system page and the auth pages.
 
+Search for `!\[|<img|screenshots|admin`
+
+Find files matching `**/*.{png,jpg,jpeg,webp,gif}`
+
+Sí: **Home, booking, design system y admin**. El bloque completo quedaría así:
+
+
+
+## Screenshots
+
+<p align="center">
+  <img src="docs/screenshots/home.png" alt="TurnoVivo home page" width="100%" />
+</p>
+
+| Booking agenda | Design system | Admin dashboard |
+| --- | --- | --- |
+| ![Booking agenda](docs/screenshots/booking.png) | ![Design system](docs/screenshots/design-system.png) | ![Admin dashboard](docs/screenshots/admin.png) |
+
+
 ## Stack
 
 | Layer | Tools |

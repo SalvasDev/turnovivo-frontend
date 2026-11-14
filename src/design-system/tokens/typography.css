@@ -14,12 +14,7 @@
   --font-size-48: 48px;
   --font-size-56: 56px;
   --font-size-64: 64px;
-  --font-weight-regular: 400;
-  --font-weight-medium: 500;
-  --font-weight-semibold: 600;
-  --font-weight-bold: 700;
-  --font-weight-extrabold: 800;
-  --line-height-body-ratio: 1.5;
+
   --line-height-12: 12px;
   --line-height-14: 14px;
   --line-height-16: 16px;
@@ -40,24 +35,87 @@
   --line-height-64: 64px;
   --line-height-68: 68px;
   --line-height-72: 72px;
-  --typography-labels-label-small: var(--font-weight-semibold) var(--font-size-14)/var(--line-height-16) var(--font-family-primary), sans-serif;
-  --typography-labels-label-large: var(--font-weight-semibold) var(--font-size-18)/var(--line-height-24) var(--font-family-primary), sans-serif;
-  --typography-body-body-large: var(--font-weight-regular) var(--font-size-20)/var(--line-height-28) var(--font-family-primary), sans-serif;
-  --typography-body-body-small: var(--font-weight-regular) var(--font-size-12)/var(--line-height-14) var(--font-family-primary), sans-serif;
-  --typography-body-body-small-bold: var(--font-weight-bold) var(--font-size-12)/var(--line-height-14) var(--font-family-primary), sans-serif;
-  --typography-body-body-medium: var(--font-weight-regular) var(--font-size-14)/var(--line-height-20) var(--font-family-primary), sans-serif;
-  --typography-body-body-medium-500: var(--font-weight-medium) var(--font-size-14)/var(--line-height-20) var(--font-family-primary), sans-serif;
-  --typography-body-body-base-bold: var(--font-weight-bold) var(--font-size-16)/var(--line-height-20) var(--font-family-primary), sans-serif;
-  --typography-body-body-base-500: var(--font-weight-medium) var(--font-size-16)/var(--line-height-20) var(--font-family-primary), sans-serif;
-  --typography-body-body-base-semibold: var(--font-weight-semibold) var(--font-size-16)/var(--line-height-20) var(--font-family-primary), sans-serif;
-  --typography-body-body-base: var(--font-weight-regular) var(--font-size-16)/var(--line-height-20) var(--font-family-primary), sans-serif;
-  --typography-display-display-large-semibold: var(--font-weight-semibold) var(--font-size-56)/var(--line-height-64) var(--font-family-primary), sans-serif;
-  --typography-title-title-large-semibold: var(--font-weight-semibold) var(--font-size-24)/normal var(--font-family-primary), sans-serif;
-  --typography-title-title-medium-bold: var(--font-weight-bold) var(--font-size-20)/var(--line-height-24) var(--font-family-primary), sans-serif;
-  --typography-caption-caption-bold: var(--font-weight-bold) var(--font-size-10)/var(--line-height-12) var(--font-family-primary), sans-serif;
-  --typography-headline-headline-large-semibold: var(--font-weight-semibold) var(--font-size-40)/var(--line-height-56) var(--font-family-primary), sans-serif;
-  --typography-headline-headline-medium-semibold: var(--font-weight-semibold) var(--font-size-32)/var(--line-height-36) var(--font-family-primary), sans-serif;
-  --typography-headline-headline-large-bold: var(--font-weight-bold) var(--font-size-40)/var(--line-height-56) var(--font-family-primary), sans-serif;
+
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+  --font-weight-extrabold: 800;
+  --line-height-body-ratio: 1.5;
+
+  --typography-labels-label-small: 
+    var(--font-weight-medium) 
+    var(--font-size-14)/var(--line-height-16) 
+    var(--font-family-primary), sans-serif;
+  --typography-labels-label-large: 
+    var(--font-weight-medium) 
+    var(--font-size-16)/var(--line-height-20) 
+    var(--font-family-primary), sans-serif;
+  --typography-body-body-large: 
+    var(--font-weight-regular) 
+    var(--font-size-20)/var(--line-height-28) 
+    var(--font-family-primary), sans-serif;
+  --typography-body-body-small: 
+    var(--font-weight-regular) 
+    var(--font-size-12)/var(--line-height-14) 
+    var(--font-family-primary), sans-serif;
+  --typography-body-body-small-bold: 
+    var(--font-weight-bold) 
+    var(--font-size-12)/var(--line-height-14) 
+    var(--font-family-primary), sans-serif;
+  --typography-body-body-medium: 
+    var(--font-weight-regular) 
+    var(--font-size-14)/var(--line-height-20) 
+    var(--font-family-primary), sans-serif;
+  --typography-body-body-medium-500: 
+    var(--font-weight-medium) 
+    var(--font-size-14)/var(--line-height-20) 
+    var(--font-family-primary), sans-serif;
+  --typography-body-body-base-bold: 
+    var(--font-weight-bold) 
+    var(--font-size-16)/var(--line-height-20) 
+    var(--font-family-primary), sans-serif;
+  --typography-body-body-base-500: 
+    var(--font-weight-medium) 
+    var(--font-size-16)/var(--line-height-20) 
+    var(--font-family-primary), sans-serif;
+  --typography-body-body-base-semibold: 
+    var(--font-weight-semibold) 
+    var(--font-size-16)/var(--line-height-20) 
+    var(--font-family-primary), sans-serif;
+  --typography-body-body-base: 
+    var(--font-weight-regular) 
+    var(--font-size-16)/var(--line-height-20) 
+    var(--font-family-primary), sans-serif;
+  --typography-display-display-large-semibold: 
+    var(--font-weight-semibold) 
+    var(--font-size-56)/var(--line-height-64) 
+    var(--font-family-primary), sans-serif;
+  --typography-title-title-large-semibold: 
+    var(--font-weight-semibold) 
+    var(--font-size-24)/normal 
+    var(--font-family-primary), sans-serif;
+  --typography-title-title-medium-bold: 
+    var(--font-weight-bold) 
+    var(--font-size-20)/var(--line-height-24) 
+    var(--font-family-primary), sans-serif;
+  --typography-caption-caption-bold: 
+    var(--font-weight-bold) 
+    var(--font-size-10)/var(--line-height-12) 
+    var(--font-family-primary), sans-serif;
+  --typography-headline-headline-large-semibold: 
+    var(--font-weight-semibold) 
+    var(--font-size-40)/var(--line-height-56) 
+    var(--font-family-primary), sans-serif;
+  --typography-headline-headline-medium-semibold: 
+    var(--font-weight-semibold) 
+    var(--font-size-32)/var(--line-height-36) 
+    var(--font-family-primary), sans-serif;
+  --typography-headline-headline-large-bold: 
+    var(--font-weight-bold) 
+    var(--font-size-40)/var(--line-height-56) 
+    var(--font-family-primary), sans-serif;
+
   /* The `font` shorthand cannot carry these, so only the non-default ones are kept. */
   --typography-body-body-small-letter-spacing: 0.05em;
   --typography-body-body-small-bold-letter-spacing: 0.05em;
