@@ -37,5 +37,10 @@
     "stylelint": "^17.16.0",
     "typescript": "^5",
     "vitest": "^4.1.9"
+  },
+  "allowScripts": {
+    "fsevents@2.3.3": true,
+    "sharp@0.34.5": true,
+    "unrs-resolver@1.13.0": true
   }
 }
